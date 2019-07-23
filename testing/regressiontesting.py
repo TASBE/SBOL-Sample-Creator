@@ -34,7 +34,7 @@ assert NewModList == ['Test_Experiment_codenameA', 'Test_Experiment_codenameB', 
 ModList = ['A','B','C','D','E','F']
 NewModList == ['Test_Experiment_codenameA', 'Test_Experiment_codenameB', 'Test_Experiment_codenameC', 'Test_Experiment_codenameD', 'Test_Experiment_codenameE', 'Test_Experiment_codenameF']
 ModDefDict = py.ModMaker(ExpSheet,ModList,NewModList)
-assert ModDefDict.keys() == NewModList
+assert list(set(ModDefDict.keys()) - set(NewModList)) == 0
 for newmod in NewModList:
     assert type(ModDefDict[newmod]) == ModuleDefinition
 
