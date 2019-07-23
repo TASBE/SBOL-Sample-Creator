@@ -25,11 +25,11 @@ def MakeBook(file_location):
 
 
 #extracting experiment name from "Experiment" sheet and making sure there is a sheet named "Experiment DNA sample"
-def ExcelImport(wb):
+def ExcelImport(wb, ExperimentSheetName):
     try:
-        ExperimentSheet = wb.sheet_by_name('Experiment DNA sample')
+        ExperimentSheet = wb.sheet_by_name(ExperimentSheetName)
     except:
-        print('Error: No sheet named "Experiment DNA sample" detected.')
+        print('Error: No sheet named {} detected.'.format(ExperimentSheetName))
         return(-1,-1)
     NameSheet = wb.sheet_by_name('Experiment')
     LookingFor = 'Experiment Name'
@@ -386,15 +386,16 @@ IF RUNNING FROM TERMINAL, UNCOMMENT EVERYTHING BELOW:
 #Config.setOption('sbol_compliant_uris',True)
 #
 ##file_location = input('Enter the name of your file, including the extension: ')
-#file_location = '20180606_JHT6.xlsm'
+file_location = '20180606_JHT6.xlsm'
 #
 #
-#wb = MakeBook(file_location)
-#(ExpName, ExpSheet) = ExcelImport(wb)
-#Unit = UnitCollectionFunc(ExpSheet)
-#(ModList,PlasmidList_orig) = PlasModList(ExpSheet)
-#PlasmidList_norepeat = PlasNoRepeat(PlasmidList_orig)
-#NewModList = ModListCleaner(ModList,ExpName)
+wb = MakeBook(file_location)
+(ExpName, ExpSheet) = ExcelImport(wb)
+Unit = UnitCollectionFunc(ExpSheet)
+(ModList,PlasmidList_orig) = PlasModList(ExpSheet)
+PlasmidList_norepeat = PlasNoRepeat(PlasmidList_orig)
+NewModList = ModListCleaner(ModList,ExpName)
+print(NewModList)
 #ModDefDict = ModMaker(ExpSheet,ModList,NewModList)
 #diditwork = SamplesImport(ModList,NewModList,ModDefDict,wb,ExpName)
 #CompDefDict = CompMaker(PlasmidList_norepeat)
