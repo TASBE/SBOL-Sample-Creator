@@ -1,7 +1,6 @@
 #Uncomment all import statements if NOT running with Jupyter Notebook
 #Follow README for installation instructions
 
-
 """""
 EXCEL IMPORT
 """""
@@ -368,71 +367,4 @@ def NewProjUpload(username,password):
     print(result)
     return(0)
 
-"""""
-IF RUNNING FROM TERMINAL, UNCOMMENT EVERYTHING BELOW:
-(You can do this by selecting it all and then doing "⌘/")
-"""""
 
-#from sbol import *
-#import re
-#import sys
-#import xlrd
-#import getpass
-#
-#global doc
-#doc = Document()
-#setHomespace('http://bu.edu/dasha')
-#Config.setOption('sbol_typed_uris',False)
-#Config.setOption('sbol_compliant_uris',True)
-#
-#file_location = input('Enter the name of your file, including the extension: ')
-#
-#
-#wb = MakeBook(file_location)
-#(ExpName, ExpSheet) = ExcelImport(wb)
-#Unit = UnitCollectionFunc(ExpSheet)
-#(ModList,PlasmidList_orig) = PlasModList(ExpSheet)
-#PlasmidList_norepeat = PlasNoRepeat(PlasmidList_orig)
-#NewModList = ModListCleaner(ModList,ExpName)
-#
-#ModDefDict = ModMaker(ExpSheet,ModList,NewModList)
-#diditwork = SamplesImport(ModList,NewModList,ModDefDict,wb,ExpName)
-#CompDefDict = CompMaker(PlasmidList_norepeat)
-#diditwork = FuncMaker(NewModList,ModList,ExpSheet,CompDefDict,ModDefDict,Unit)
-#
-#projectID = input('Enter the project collection displayID: ')
-#projectName = input('Enter the project collection name: ')
-#projectDescription = input('Enter the project collection description: ')
-#projectVersion = input('Enter the project collection version (1.0.0 or 1): ')
-#
-#experimentID = input('Enter the experiment collection displayID: ')
-#experimentName = input('Enter the experiment collection name: ')
-#experimentDescription = input('Enter the experiment collection description: ')
-#
-#username = input('Enter your SynBioHub username: ')
-#password = getpass.getpass(prompt='Enter your SynBioHub password: ')
-#sep = '@'
-#rest = username.split(sep, 1)[0]
-#colURI = "https://synbiohub.org/user/" + rest + "/" + projectID + "/" + projectID + "_collection/" + projectVersion
-#ret = UploadFunc(username,password,projectID,projectName,projectDescription,experimentID,experimentName,experimentDescription,colURI)
-#if ret == 1:
-#    print('No project with the displayID "{}" found.'.format(projectID))
-#    answer = input('Do you want to create a new project with this displayID? (y/n)')
-#    if answer == 'y':
-#          formatlist = [projectID,experimentID]
-#          print('Creating a new project with displayID "{}" containing an experiment with displayID "{}".'.format(*formatlist))
-#          doc.displayId = projectID
-#          doc.name = projectName
-#          doc.description = projectDescription
-#          doc.version = projectVersion
-#          NewProjUpload(username,password)
-#          print(colURI)
-#          sys.exit()
-#    elif answer == 'n':
-#          print('Upload stopped.')
-#          sys.exit()
-#elif ret == 2:
-#        print(colURI)
-#        sys.exit()
-#else:
-#        sys.exit()

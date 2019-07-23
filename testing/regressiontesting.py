@@ -2,6 +2,7 @@ import SBOLconverter as py
 
 #testing that Excel sheet is able to open
 testfile = './testing/SBOL_Sample_test.xlsm'
+#testfile = 'SBOL_Sample_test.xlsm'
 wb = py.MakeBook(testfile)
 assert wb
 
@@ -34,9 +35,10 @@ assert NewModList == ['Test_Experiment_codenameA', 'Test_Experiment_codenameB', 
 ModList = ['A','B','C','D','E','F']
 NewModList == ['Test_Experiment_codenameA', 'Test_Experiment_codenameB', 'Test_Experiment_codenameC', 'Test_Experiment_codenameD', 'Test_Experiment_codenameE', 'Test_Experiment_codenameF']
 ModDefDict = py.ModMaker(ExpSheet,ModList,NewModList)
-assert list(set(ModDefDict.keys()) - set(NewModList)) == 0
+assert list(set(ModDefDict.keys()) - set(NewModList)) == []
 for newmod in NewModList:
-    assert type(ModDefDict[newmod]) == ModuleDefinition
+    assert type(ModDefDict[newmod]) == py.sbol.libsbol.ModuleDefinition
+
 
 # SamplesOutput = py.SamplesImport(ModList,NewModList,ModDefDict,wb,ExpName)
 # if SamplesOutput == 0:
