@@ -4,17 +4,16 @@ testfile = './testing/SBOL_Sample_test.xlsm'
 wb = py.MakeBook(testfile)
 assert wb
 
-# (ExpName, ExpSheet) = py.ExcelImport(wb)
-# if (ExpName,ExpSheet):
-#     print('Test 2/10: extracting Experiment Name, locating "Experiment DNA sample" successful...')
-#     testcounter +=1
+(ExpName, ExpSheet) = py.ExcelImport(wb) 
+assert ExpName == 'Test Experiment'
+assert ExpSheet
 
-# Unit = py.UnitCollectionFunc(ExpSheet)
-# if Unit:
-#     print('Test 3/10: extracting unit successful...')
-#     testcounter +=1
+Unit = py.UnitCollectionFunc(ExpSheet)
+assert Unit == 'ng'
 
-# (ModList,PlasmidList_orig) = py.PlasModList(ExpSheet)
+(ModList,PlasmidList_orig) = py.PlasModList(ExpSheet)
+assert ModList == [A,B,C,D,E,F]
+assert PlasmidList_orig == ['pBW465, pBW2139, pBW339, pBW586, pBW2909, pLC41, pLC20, BW363, pBW465, pBW2139, pBW339, pBW586, pBW2909, pLC41, pLC20, BW363']
 # if (ModList,PlasmidList_orig):
 #     print('Test 4/10: creating list of Modules and plasmids successful...')
 #     testcounter +=1
