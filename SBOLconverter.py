@@ -1,5 +1,5 @@
-#Uncomment all import statements if NOT running with Jupyter Notebook
-#Follow README for installation instructions
+# Uncomment all import statements if NOT running with Jupyter Notebook
+# Follow README for installation instructions
 
 """""
 EXCEL IMPORT
@@ -11,25 +11,28 @@ import sys
 import xlrd
 import getpass
 
-global doc
-doc = Document()
-setHomespace('http://bu.edu/dasha')
-Config.setOption('sbol_typed_uris',False)
-Config.setOption('sbol_compliant_uris',True)
+# global doc
+# doc = Document()
+# setHomespace('http://bu.edu/dasha')
+# Config.setOption('sbol_typed_uris',False)
+# Config.setOption('sbol_compliant_uris',True)
 
-#creating a variable representing the Excel file
+# creating a variable representing the Excel file
 def MakeBook(file_location):
     wb = xlrd.open_workbook(file_location)
     return wb
 
 
-#extracting experiment name from "Experiment" sheet and making sure there is a sheet named "Experiment DNA sample"
-def ExcelImport(wb, ExperimentSheetName):
+# extracting experiment name from "Experiment" sheet and making sure there is a sheet named "Experiment DNA sample"
+def ExpSheetFinder(wb, ExperimentSheetName):
     try:
         ExperimentSheet = wb.sheet_by_name(ExperimentSheetName)
     except:
         print('Error: No sheet named {} detected.'.format(ExperimentSheetName))
-        return(-1,-1)
+        return(-1)
+    return(ExperimentSheet)
+
+def ExpNameFinder(wb):
     NameSheet = wb.sheet_by_name('Experiment')
     LookingFor = 'Experiment Name'
     for r in range(0,NameSheet.nrows):
@@ -40,14 +43,14 @@ def ExcelImport(wb, ExperimentSheetName):
             r+=1
     if (r == NameSheet.nrows):
         print('Error: Experiment name not found in file. It must be in the first column of the "Experiment" sheet under the "Experiment Name" header.')
-        return(-1,-1)
+        return(-1)
     else:
         r+=1
         ExperimentName = (NameSheet.cell(r,0)).value
-    return(ExperimentName,ExperimentSheet)
+    return(ExperimentName)
 
 
-#extracting the unit from "Experiment DNA sample" sheet
+# extracting the unit from "Experiment DNA sample" sheet
 def UnitCollectionFunc(ExperimentSheet):
     Unit = ''
     for r in range(0,ExperimentSheet.nrows):
@@ -63,7 +66,7 @@ def UnitCollectionFunc(ExperimentSheet):
     return(Unit)
 
 
-#extracting a list of all the ModuleDefinitions from the "Experiment DNA sample" sheet. Then, creating a list of plasmids that are contained within each Module
+# extracting a list of all the ModuleDefinitions from the "Experiment DNA sample" sheet. Then, creating a list of plasmids that are contained within each Module
 def PlasModList(ExperimentSheet):
     ModList = []
     LookingFor = 'Plasmid Number'
@@ -79,7 +82,6 @@ def PlasModList(ExperimentSheet):
     if ModList == []:
         print('Error: No modules found. They need to be in a row with "Plasmid Number" as the header.')
         return(-1,-1)
-
     PlasmidList_orig = []
     for r in range(0,ExperimentSheet.nrows):
         cell_obj = ExperimentSheet.cell(r,0)
@@ -94,15 +96,15 @@ def PlasModList(ExperimentSheet):
     return(ModList,PlasmidList_orig)
 
 
-#taking away duplicates from PlasmidList_orig so that unique ComponentDefinitions can be created
+# taking away duplicates from PlasmidList_orig so that unique ComponentDefinitions can be created
 def PlasNoRepeat(PlasmidList_orig):
     import collections
     PlasmidList_norepeat = list(dict.fromkeys(PlasmidList_orig))
     return(PlasmidList_norepeat)
 
 
-#function for finding a cell with a specific string
-def DescriptionFinder(LookingFor,sheetname):
+# function for finding a cell with a specific string
+def DescriptionFinder(LookingFor, sheetname):
     for r in range(0,sheetname.nrows):
         for c in range(0,sheetname.ncols):
             cell_obj = sheetname.cell(r,c)
@@ -115,25 +117,25 @@ def DescriptionFinder(LookingFor,sheetname):
 MODULE DEFINITIONS -- DNA MIXES
 """""
 
-#taking the module name/type of plasmid mix and putting a '_' where the spaces are, then composing the ModuleNames into a new list
-def ModListCleaner(ModList,ExperimentName):
+# taking the module name/type of plasmid mix and putting a '_' where the spaces are, then composing the ModuleNames into a new list
+def ModListCleaner(ModList, ExperimentName):
     clean = lambda varStr: re.sub('\W|^(?=\d)','_', varStr)
     newModList = [(clean(ExperimentName) + '_codename' + clean(ModName)) for ModName in ModList]
     return(newModList)
 
 
-#creating the ModuleDefinitions from the module list, by making a dictionary with the key being the MD displayID and the value being the MD associated with that displayID
-#ModDefDict[displayID] is of the type "MD"
-#in the future, adding appropriate description to each MD
-def ModMaker(ExperimentSheet,ModList,newModList):
+# creating the ModuleDefinitions from the module list, by making a dictionary with the key being the MD displayID and the value being the MD associated with that displayID
+# ModDefDict[displayID] is of the type "MD"
+# in the future, adding appropriate description to each MD
+def ModMaker(ModList, newModList, ExperimentSheet, doc):
     ModDefDict = {}
     for val in range(0,len(newModList)):
         displayID = newModList[val]
         try:
             temp = ModuleDefinition(displayID)
             ModDefDict[displayID] = temp
-            #temp.description = ModDescriptionList[val]
-            #^insert description by extracting it from the Excel files
+            # temp.description = ModDescriptionList[val]
+            # ^insert description by extracting it from the Excel files
             doc.addModuleDefinition(ModDefDict[displayID])
         except:
             formatlist = [ExperimentSheet.name,ModList[val]]
@@ -146,16 +148,18 @@ def ModMaker(ExperimentSheet,ModList,newModList):
 MODULE DEFINITIONS -- SAMPLES
 """""
 
-#creating ModuleDefinitions for each Sample listed in the Samples Tab, and creating annotations for each Sample by getting information about Experimental Conditions
-def SamplesImport(ModList,newModList,ModDefDict,wb,ExperimentName):
+# finding Sample sheet and extracting Sample List and Sample Descriptions
+def SamplesSheetFinder(wb):
     try:
         SampleSheet = wb.sheet_by_name('Samples')
     except:
         print('Error: No sheet named "Samples" detected.')
         return(-1)
+    return SampleSheet
+
+def SampleListDesc(SampleSheet):
     SampleList = []
     SampleDescriptions = []
-
     for r in range(0,SampleSheet.nrows):
         cell_obj = SampleSheet.cell(r,0)
         if (cell_obj.value == 'SAMPLE\nNUMBER' or cell_obj.value == 'SAMPLE NUMBER'):
@@ -169,8 +173,13 @@ def SamplesImport(ModList,newModList,ModDefDict,wb,ExperimentName):
     if SampleList == []:
         print('Error: First column in "Samples" sheet must have a column name SAMPLE NUMBER')
         return(-1)
+    return (SampleList, SampleDescriptions)
 
-    #getting data about Experimental Conditions -- ASSUMING THERE ARE 5 POSSIBLE COLUMNS
+# creating ModuleDefinitions for each Sample listed in the Samples Tab, and creating annotations for each Sample by getting information about Experimental Conditions
+
+def SampleExpConditions(SampleSheet, SampleList):
+    # getting data about Experimental Conditions -- ASSUMING THERE ARE AT MOST 5 POSSIBLE COLUMNS
+    ConditionDictionary = {}
     ConditionList1 = []
     ConditionList2 = []
     ConditionList3 = []
@@ -193,8 +202,12 @@ def SamplesImport(ModList,newModList,ModDefDict,wb,ExperimentName):
             cond.append(addval)
             row+=1
         c+=1
+        if(cond[0] != '' and cond[0] != '-'):
+            ConditionDictionary[str(cond[0])] = cond[1:]
+    return ConditionDictionary
 
-    #creating Module Defs
+# creating Module Defs
+def SampleModMaker(SampleSheet, SampleList, SampleDescriptions, ConditionDictionary, ExperimentName,doc):
     SampleModDefDict = {}
     clean = lambda varStr: re.sub('\W|^(?=\d)','_', varStr)
     newSampleList = [(clean(ExperimentName) + '_sample_' + str(round(SampleName))) for SampleName in SampleList]
@@ -209,34 +222,32 @@ def SamplesImport(ModList,newModList,ModDefDict,wb,ExperimentName):
             formatlist = [SampleSheet.name,SampleList[val]]
             print('Error: Detecting two samples in "{}" sheet numbered {}.'.format(*formatlist))
             return(-1)
-        #creating annotations with Dox symbol, time, and any other experimental conditions listed
-        for cond in [ConditionList1,ConditionList2,ConditionList3,ConditionList4,ConditionList5]:
-                if(cond[0] != '' and cond[0] != '-'):
-                    tempURI = temp.identity + '#' + cond[0]
-                    value = cond[val+1]
-                    if value != '':
-                        if is_number(value):
-                            stringval = '%s' % float('%6g' % value)
-                            #at most 6 significant figures
-                            temp.setAnnotation(tempURI,stringval)
-                        else:
-                            stringval = value
-                            temp.setAnnotation(tempURI,stringval)
+        # creating annotations with Dox symbol, time, and any other experimental conditions listed
+        for cond in ConditionDictionary:
+            tempURI = temp.identity + '#' + cond
+            value = (ConditionDictionary[cond])[val]
+            if value != '':
+                if is_number(value):
+                    stringval = '%s' % float('%6g' % value)
+                    # at most 6 significant figures
+                    temp.setAnnotation(tempURI,stringval)
+                else:
+                    stringval = value
+                    temp.setAnnotation(tempURI,stringval)
+    return (SampleModDefDict, newSampleList)
 
-    ##NEXT STEP: have the computer extract information about the condition keys (aka each explanation) so that when adding annotation it can be added as 0 ng instead of - or 100 ng instead of +
-    
-    #creating Modules for each of the plasmid mixes and adding them to the appropriate Sample MD
+# NEXT STEP: have the computer extract information about the condition keys (aka each explanation) so that when adding annotation it can be added as 0 ng instead of - or 100 ng instead of +
+# creating Modules for each of the plasmid mixes and adding them to the appropriate Sample MD
+def ModAdder(SampleList, newSampleList, SampleModDefDict, ModList, newModList, ModDefDict, ConditionDictionary):  
     isthereCode = 0
     validCodeCounter = 0
     for val in range(0,len(SampleList)):
         ModDef = SampleModDefDict[newSampleList[val]]
-        for cond in [ConditionList1,ConditionList2,ConditionList3,ConditionList4,ConditionList5]:
-            if(cond[0] == 'Code' or cond[0] == 'code'): ##assumes there is such a column that corresponds to the names on the Experiment DNA sample tab
+        for cond in ConditionDictionary:
+            if(cond == 'Code' or cond == 'code'): # assumes there is such a column that corresponds to the names on the Experiment DNA sample tab
                 isthereCode = 1
-                codename = cond[val+1]
-                print(codename)
+                codename = (ConditionDictionary[cond])[val]
                 for mod in range(0,len(ModList)):
-                    print(ModList[mod])
                     if codename == ModList[mod]:
                         displayID = newModList[mod]
                         test = ModDef.modules.create(displayID)
@@ -244,16 +255,15 @@ def SamplesImport(ModList,newModList,ModDefDict,wb,ExperimentName):
                         test.definition = otherMD.identity
                         validCodeCounter += 1
                     if mod == (len(ModList) - 1) and validCodeCounter == 0:
-                        print('Error: "{}" is in the Code list but not in the Module list.'.format(codename))
+                        print('Error: "{}" is listed as a Module name in the Code list but does not appear in the Module list.'.format(codename))
                         return(-1)
     if isthereCode == 0:
         print('Error: There must be a column in the Experimental Conditions tab in the Samples sheet named "Code" that corresponds to the names of each Module in the Experimental DNA sample sheet.')
         return(-1)
-    diditwork = 0
-    return(diditwork)
+    return 0
 
 
-#checking if a string is a number, used to see if the experimental condition should be converted into a string or not
+# checking if a string is a number, used to see if the experimental condition should be converted into a string or not
 def is_number(s):
     try:
         float(s)
@@ -266,12 +276,12 @@ def is_number(s):
 COMPONENT DEFINITIONS
 """""
 
-#creating ComponentDefinition for each plasmid type and adding description, key is the displayID and value is the CD
-def CompMaker(PlasmidList_norepeat):
+# creating ComponentDefinition for each plasmid type and adding description, key is the displayID and value is the CD
+def CompMaker(PlasmidList_norepeat,doc):
     CompDefDict = {}
     for val in range(0,len(PlasmidList_norepeat)):
             displayID = PlasmidList_norepeat[val]
-            temp = ComponentDefinition(displayID,BIOPAX_DNA) #encodes all plasmids as type BIOPAX_DNA
+            temp = ComponentDefinition(displayID,BIOPAX_DNA) # encodes all plasmids as type BIOPAX_DNA
             CompDefDict[displayID] = temp
     for comp in CompDefDict:
         CompDefDict[comp].roles = SO_PLASMID
@@ -283,20 +293,20 @@ def CompMaker(PlasmidList_norepeat):
 FUNCTIONAL COMPONENTS + ANNOTATIONS
 """""
 
-#function that finds modules from ModList in "Experiment Sheet"
-def FindMod(val,ExperimentSheet,ModList):
+# function that finds modules from ModList in "Experiment Sheet"
+def FindMod(val, ModList, ExperimentSheet):
     for row in range(0,ExperimentSheet.nrows):
         for col in range(0,ExperimentSheet.ncols):
             cellvalue = (ExperimentSheet.cell(row,col)).value
             if cellvalue == ModList[val]: return (row,col)
     return(-1,-1)
 
-#creating FunctionalComponents for each plasmid present in each Module, and then adding the appropriate annotations
-def FuncMaker(newModList,ModList,ExperimentSheet,CompDefDict,ModDefDict,Unit):
-    #FunCompDict = {}
+# creating FunctionalComponents for each plasmid present in each Module, and then adding the appropriate annotations
+def FuncMaker(ModList, newModList, ModDefDict, CompDefDict, ExperimentSheet, Unit):
+    # FunCompDict = {}
     for val in range(0,len(ModList)):
         mod = newModList[val]
-        (r,col) = FindMod(val,ExperimentSheet,ModList)
+        (r,col) = FindMod(val,ModList,ExperimentSheet)
         r+=1
         endvar = 'b'
         while (r < ExperimentSheet.nrows and (ExperimentSheet.cell(r,0)).value != ''):
@@ -304,13 +314,13 @@ def FuncMaker(newModList,ModList,ExperimentSheet,CompDefDict,ModDefDict,Unit):
                 displayId = (ExperimentSheet.cell(r,0)).value
                 try:
                     temp = ModDefDict[mod].functionalComponents.create(displayId)
-                    #FunCompDict[displayId+mod] = temp
+                    # FunCompDict[displayId+mod] = temp
                     temp.definition = (CompDefDict[displayId]).identity
                 except:
                     displayId = displayId + endvar
                     endvar = chr(ord(endvar) + 1)
                     temp = ModDefDict[mod].functionalComponents.create(displayId)
-                    #FunCompDict[displayId+mod] = temp
+                    # FunCompDict[displayId+mod] = temp
                     temp.definition = (CompDefDict[(displayId[:-1])]).identity
                 (row,c) = DescriptionFinder('Plasmid Description',ExperimentSheet)
                 descriptioncol = c
@@ -319,36 +329,35 @@ def FuncMaker(newModList,ModList,ExperimentSheet,CompDefDict,ModDefDict,Unit):
                 temp.access = SBOL_ACCESS_PUBLIC
                 temp.direction = SBOL_DIRECTION_NONE
                 
-                #setting annotations:
+                # setting annotations:
                 valueURI = temp.identity + '#hasNumericalValue'
                 value = (ExperimentSheet.cell(r,col)).value
                 if value != '':
                     stringval = '%s' % float('%6g' % value)
-                    #at most 6 significant figures
+                    # at most 6 significant figures
                     temp.setAnnotation(valueURI,stringval)
-                    #temp.hasNumericalValue = FloatProperty(temp,'http://bu.edu/dasha/#hasNumericalValue','0','1')
-                    #temp.hasNumericalValue = 10.0
-                    #^new way to create annotations, work in progress
+                    # temp.hasNumericalValue = FloatProperty(temp,'http://bu.edu/dasha/#hasNumericalValue','0','1')
+                    # temp.hasNumericalValue = 10.0
+                    # ^new way to create annotations, work in progress
                     unitsURI = temp.identity + '#hasUnit'
                     temp.setAnnotation(unitsURI,Unit)
                 elif value == '':
                     ModDefDict[mod].functionalComponents.remove(temp.identity)
             r+=1
-    diditwork = 0
-    return(diditwork)
+    return 0
 
 
-#creating a Collection containing all the objects in the Document (Experiment Collection) and either adding it to an existing Project Collection or creating a new Project Collection. Logging in and uploading everything to SynBioHub
-def UploadFunc(username,password,displayId,collectionname,collectiondescription,subdisplayId,subcollectionname,subcollectiondescription,rootcolURI):
+# creating a Collection containing all the objects in the Document (Experiment Collection) and either adding it to an existing Project Collection or creating a new Project Collection. Logging in and uploading everything to SynBioHub
+def UploadFunc(username, password, experimentID, experimentName, experimentDescription, projectURI, doc):
     shop = PartShop('https://synbiohub.org')
     shop.login(username, password)
-    subcollection = Collection(subdisplayId)
-    subcollection.name = subcollectionname
-    subcollection.description = subcollectiondescription
+    subcollection = Collection(experimentID)
+    subcollection.name = experimentName
+    subcollection.description = experimentDescription
     uriList = [obj.identity for obj in doc]
     subcollection.members = subcollection.members + uriList
     doc.addCollection(subcollection)
-    result = shop.submit(doc,rootcolURI,2)
+    result = shop.submit(doc,projectURI,2) # 2 means merge
     if result == 'Submission id and version does not exist':
         return(1)
     elif result == 'Submission successful' or result == 'Successfully uploaded':
@@ -359,8 +368,8 @@ def UploadFunc(username,password,displayId,collectionname,collectiondescription,
         return(0)
 
 
-#uploader if the user is creating a new Project Collection
-def NewProjUpload(username,password):
+# uploader if the user is creating a new Project Collection
+def NewProjUpload(username, password, doc):
     shop = PartShop('https://synbiohub.org')
     shop.login(username, password)
     result = shop.submit(doc)
@@ -368,3 +377,7 @@ def NewProjUpload(username,password):
     return(0)
 
 
+# #new function to call Google API and check if the LCP dictionary has the component
+# """
+# ALSO!! NEED TO ADD DOX AS A FUNCTIONAL COMPONENT BECAUSE IT IS PART OF THE MIX
+# """
