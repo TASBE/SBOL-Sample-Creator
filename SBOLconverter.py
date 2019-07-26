@@ -172,7 +172,7 @@ def SampleListDesc(SampleSheet):
             r+=1
     if SampleList == []:
         print('Error: First column in "Samples" sheet must have a column name SAMPLE NUMBER')
-        return(-1)
+        return(-1,-1)
     return (SampleList, SampleDescriptions)
 
 # creating ModuleDefinitions for each Sample listed in the Samples Tab, and creating annotations for each Sample by getting information about Experimental Conditions
@@ -221,7 +221,7 @@ def SampleModMaker(SampleSheet, SampleList, SampleDescriptions, ConditionDiction
         except:
             formatlist = [SampleSheet.name,SampleList[val]]
             print('Error: Detecting two samples in "{}" sheet numbered {}.'.format(*formatlist))
-            return(-1)
+            return(-1,-1)
         # creating annotations with Dox symbol, time, and any other experimental conditions listed
         for cond in ConditionDictionary:
             tempURI = temp.identity + '#' + cond
@@ -282,7 +282,7 @@ def CompMaker(PlasmidList_norepeat,doc):
     # populating Component Dictionary
     for val in range(0,len(PlasmidList_norepeat)):
         displayID = PlasmidList_norepeat[val]
-        existingNames = LCPDictionaryCaller()
+        existingNames = DictionaryNamesFinder()
         for name in existingNames:
             if displayID != name:
                 temp = ComponentDefinition(displayID,BIOPAX_DNA) # encodes all plasmids as type BIOPAX_DNA
