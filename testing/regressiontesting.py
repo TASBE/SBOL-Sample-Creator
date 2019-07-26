@@ -18,8 +18,8 @@ doc1 = Document()
 global doc2
 doc2 = Document()
 
-testfile1 = 'SBOL_Sample_test_1.xlsm'
-testfile2 = 'SBOL_Sample_test_2.xlsm'
+testfile1 = 'testing/SBOL_Sample_test_1.xlsm'
+testfile2 = 'testing/SBOL_Sample_test_2.xlsm'
 
 expname1 = 'Test Experiment 1'
 expname2 = 'Test Experiment 2'
