@@ -279,10 +279,17 @@ COMPONENT DEFINITIONS
 # creating ComponentDefinition for each plasmid type and adding description, key is the displayID and value is the CD
 def CompMaker(PlasmidList_norepeat,doc):
     CompDefDict = {}
+    # populating Component Dictionary
     for val in range(0,len(PlasmidList_norepeat)):
-            displayID = PlasmidList_norepeat[val]
-            temp = ComponentDefinition(displayID,BIOPAX_DNA) # encodes all plasmids as type BIOPAX_DNA
-            CompDefDict[displayID] = temp
+        displayID = PlasmidList_norepeat[val]
+        existingNames = LCPDictionaryCaller()
+        for name in existingNames:
+            if displayID != name:
+                temp = ComponentDefinition(displayID,BIOPAX_DNA) # encodes all plasmids as type BIOPAX_DNA
+                CompDefDict[displayID] = temp
+            #else:
+                # add statememnts that find the URI of the existing part, then add it to the component dictionary
+    # adding the role to each component and then adding all component definitions to the doc
     for comp in CompDefDict:
         CompDefDict[comp].roles = SO_PLASMID
         doc.addComponentDefinition(CompDefDict[comp])
@@ -377,7 +384,56 @@ def NewProjUpload(username, password, doc):
     return(0)
 
 
-# #new function to call Google API and check if the LCP dictionary has the component
-# """
-# ALSO!! NEED TO ADD DOX AS A FUNCTIONAL COMPONENT BECAUSE IT IS PART OF THE MIX
-# """
+#new function to call Google API and check if the LCP dictionary has the component
+"""
+ALSO!! NEED TO ADD DOX AS A FUNCTIONAL COMPONENT BECAUSE IT IS PART OF THE MIX
+"""
+
+def DictionaryNamesFinder():
+    import gspread
+    from oauth2client.service_account import ServiceAccountCredentials
+    # use creds to create a client to interact with the Google Drive API
+    scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
+    creds = ServiceAccountCredentials.from_json_keyfile_name('client_info.json', scope)
+    client = gspread.authorize(creds)
+
+    #opening the spreadsheet
+    spreadsheet = client.open("LCP Project Dictionary")
+    worksheetNames = ['Reagent', 'Strain', 'Genetic Construct']
+    existingNames = []
+    for sheetName in worksheetNames:
+        currentSheet = spreadsheet.worksheet(sheetName)
+        currentInfo = currentSheet.get_all_records(False,2,'',False)
+        if len(currentInfo) != 0:
+            for index in range(0,len(currentInfo)):
+                currentDictionary = currentInfo[index]
+                existingNames.append(currentDictionary['Common Name'])
+                keysList = currentDictionary.keys()
+                for key in keysList:
+                    if 'UID' in key and currentDictionary[key] is not '':
+                        existingNames.append(currentDictionary[key])
+    return existingNames
+                
+
+    # figure out what you are searching the dictionary for -- definitely plasmids, but also reagents and strians
+    # maybe you should have 3 functions:
+    # -- one that searches for plasmids, taking the plasmid list as input
+    # -- one that searches for reagents, taking the experimental conditions list as input
+    # -- one that searches for strains, (what even is that?)
+    # They all return an array of any matching items, with item displayID (as defined by the user) and the item URI (as defined by LCP)
+
+    # maybe create a dictionary that is an array of dictionaries, each containing first 
+
+    #def NameFinder(sheet,partList):
+    #    for part in partList:
+    #        sheet.find(part)
+
+
+    # Extract and print all of the values
+    #sheet1 = spreadsheet.
+    #list_of_hashes = sheet.get_all_values()
+    #print(list_of_hashes)
+
+
+    #sheet called 'Genetic Construct' and 'Reagant'
+

@@ -39,6 +39,9 @@ ConditionDictionary = py.SampleExpConditions(SampleSheet, SampleList)
 py.ModAdder(SampleList,newSampleList,SampleModDefDict,ModList,newModList,ModDefDict,ConditionDictionary)
 CompDefDict = py.CompMaker(PlasmidList_norepeat,doc)
 
+#checking if components exist in LCP Dictionary
+py.LCPDictionaryCaller()
+
 # creating FunctionalComponents for each plasmid within each DNA mix
 py.FuncMaker(ModList, newModList, ModDefDict, CompDefDict, ExpSheet, Unit)
 
