@@ -282,11 +282,11 @@ def CompMaker(PlasmidList_norepeat,doc):
     # populating Component Dictionary
     for val in range(0,len(PlasmidList_norepeat)):
         displayID = PlasmidList_norepeat[val]
-        existingNames = DictionaryNamesFinder()
-        for name in existingNames:
-            if displayID != name:
-                temp = ComponentDefinition(displayID,BIOPAX_DNA) # encodes all plasmids as type BIOPAX_DNA
-                CompDefDict[displayID] = temp
+        # existingNames = DictionaryNamesFinder()
+        # for name in existingNames:
+            #if displayID != name:
+        temp = ComponentDefinition(displayID,BIOPAX_DNA) # encodes all plasmids as type BIOPAX_DNA
+        CompDefDict[displayID] = temp
             #else:
                 # add statememnts that find the URI of the existing part, then add it to the component dictionary
     # adding the role to each component and then adding all component definitions to the doc
@@ -389,30 +389,30 @@ def NewProjUpload(username, password, doc):
 ALSO!! NEED TO ADD DOX AS A FUNCTIONAL COMPONENT BECAUSE IT IS PART OF THE MIX
 """
 
-def DictionaryNamesFinder():
-    import gspread
-    from oauth2client.service_account import ServiceAccountCredentials
-    # use creds to create a client to interact with the Google Drive API
-    scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-    creds = ServiceAccountCredentials.from_json_keyfile_name('client_info.json', scope)
-    client = gspread.authorize(creds)
+# def DictionaryNamesFinder():
+#     import gspread
+#     from oauth2client.service_account import ServiceAccountCredentials
+#     # use creds to create a client to interact with the Google Drive API
+#     scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
+#     creds = ServiceAccountCredentials.from_json_keyfile_name('client_info.json', scope)
+#     client = gspread.authorize(creds)
 
-    #opening the spreadsheet
-    spreadsheet = client.open("LCP Project Dictionary")
-    worksheetNames = ['Reagent', 'Strain', 'Genetic Construct']
-    existingNames = []
-    for sheetName in worksheetNames:
-        currentSheet = spreadsheet.worksheet(sheetName)
-        currentInfo = currentSheet.get_all_records(False,2,'',False)
-        if len(currentInfo) != 0:
-            for index in range(0,len(currentInfo)):
-                currentDictionary = currentInfo[index]
-                existingNames.append(currentDictionary['Common Name'])
-                keysList = currentDictionary.keys()
-                for key in keysList:
-                    if 'UID' in key and currentDictionary[key] is not '':
-                        existingNames.append(currentDictionary[key])
-    return existingNames
+#     #opening the spreadsheet
+#     spreadsheet = client.open("LCP Project Dictionary")
+#     worksheetNames = ['Reagent', 'Strain', 'Genetic Construct']
+#     existingNames = []
+#     for sheetName in worksheetNames:
+#         currentSheet = spreadsheet.worksheet(sheetName)
+#         currentInfo = currentSheet.get_all_records(False,2,'',False)
+#         if len(currentInfo) != 0:
+#             for index in range(0,len(currentInfo)):
+#                 currentDictionary = currentInfo[index]
+#                 existingNames.append(currentDictionary['Common Name'])
+#                 keysList = currentDictionary.keys()
+#                 for key in keysList:
+#                     if 'UID' in key and currentDictionary[key] is not '':
+#                         existingNames.append(currentDictionary[key])
+#     return existingNames
                 
 
     # figure out what you are searching the dictionary for -- definitely plasmids, but also reagents and strians
