@@ -232,10 +232,10 @@ def SampleModMaker(SampleSheet, SampleList, SampleDescriptions, ConditionDiction
                 if is_number(value):
                     stringval = '%s' % float('%6g' % value)
                     # at most 6 significant figures
-                    temp.setAnnotation(tempURI,stringval)
+                    #temp.setAnnotation(tempURI,stringval)
                 else:
                     stringval = value
-                    temp.setAnnotation(tempURI,stringval)
+                    #temp.setAnnotation(tempURI,stringval)
     return (SampleModDefDict, newSampleList)
 
 # NEXT STEP: have the computer extract information about the condition keys (aka each explanation) so that when adding annotation it can be added as 0 ng instead of - or 100 ng instead of +
@@ -344,12 +344,12 @@ def FuncMaker(ModList, newModList, ModDefDict, CompDefDict, ExperimentSheet, Uni
                 if value != '':
                     stringval = '%s' % float('%6g' % value)
                     # at most 6 significant figures
-                    temp.setAnnotation(valueURI,stringval)
+                    #temp.setAnnotation(valueURI,stringval)
                     # temp.hasNumericalValue = FloatProperty(temp,'http://bu.edu/dasha/#hasNumericalValue','0','1')
                     # temp.hasNumericalValue = 10.0
                     # ^new way to create annotations, work in progress
                     unitsURI = temp.identity + '#hasUnit'
-                    temp.setAnnotation(unitsURI,Unit)
+                    #temp.setAnnotation(unitsURI,Unit)
                 elif value == '':
                     ModDefDict[mod].functionalComponents.remove(temp.identity)
             r+=1
