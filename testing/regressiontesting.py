@@ -9,15 +9,13 @@ sys.path.insert(0,PARENTDIR)
 import SBOLconverter as py
 
 #testing that Excel sheet is able to open
-#testfile = './testing/SBOL_Sample_test.xlsm'
-
-# ^^^ IMP ^^^
 
 global doc1
 doc1 = Document()
 global doc2
 doc2 = Document()
 
+# testing two different Excel files
 testfile1 = 'testing/SBOL_Sample_test_1.xlsm'
 testfile2 = 'testing/SBOL_Sample_test_2.xlsm'
 
@@ -37,6 +35,18 @@ plasmidlist1_norepeats = ['pBW465', 'pBW2139', 'pBW339', 'pBW586', 'pBW2909', 'p
 #plasmidlist2
 #plasmidlist2_norepeats
 
+samplelist1 = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0]
+sampledescriptions1 = ['Test 0.01', 'Test 0.02', 'Test 0.05', 'Test 0.1', 'Test 0.2', 'Test 0.5', 'Test 1', 'Test 2', 'Test 5', 'Test 10', 'Test 20', 'Test 50', 'Test 100', 'Test 200', 'Test 500', 'Test 1000', 'Test 2000', 'Test 5000', 'Beads', 'red', 'blue', 'Blank', 'GFP']
+# samplelist2 =
+# sampledescriptions2 =
+
+expconditions1 = ['DOX', 'DOSE', 'Code', 'BaseDox', '10xDox']
+# expconditions2 = 
+
+"""
+DEFINING THE TESTING FUNCTIONS
+"""
+
 def ExpInfoTest(testfile, expname, unit):
     # locating Excel file
     wb = py.MakeBook(testfile)
@@ -54,7 +64,7 @@ def ExpInfoTest(testfile, expname, unit):
     assert Unit == unit
 
     # needed for the rest of the tests
-    return ExpSheet
+    return (wb, ExpSheet)
 
 
 def PlasModTest(modlist, newmodlist, plasmidlist_repeats, plasmidlist_norepeats, expname, ExpSheet):
@@ -72,61 +82,108 @@ def PlasModTest(modlist, newmodlist, plasmidlist_repeats, plasmidlist_norepeats,
     assert newModList == newmodlist
 
 
-"""
-SOME NOTES
-"""
-"""
-    - systematically check for irregular character names
-    - make sure to check the function where it makes sure that no two modules have the same name
-    - don't assume that the variable already exists 
-    - put each call to test the SBOLconverter functions into a seperate function in this document
-    - think about having multiple Excel spreadsheet test documents, with different module configurations
-    (stretch the limit of how Modules are being found in the document)
-    - design the test Excel documents in a logical manner
-"""
-
-def ModuleDefinitionTest(modlist,newmodlist,ExpSheet,doc):
+def ModuleDefTest(modlist, newmodlist, ExpSheet, doc):
     ModDefDict = py.ModMaker(modlist, newmodlist, ExpSheet, doc)
     # checking that the ModuleDef dictionary contains all the modules in the module list
     assert list(set(ModDefDict.keys()) - set(newmodlist)) == []
-    for newmod in newmodlist:
+    for newmod in ModDefDict:
         # checking that the type stored in the ModuleDef dictionary is a ModuleDefinition
         assert type(ModDefDict[newmod]) == py.sbol.libsbol.ModuleDefinition
+    return ModDefDict
 
 
-#testing that the Samples Tab Modules are correctly created
-# def SamplesTest(wb,samplesheet,samplelist):
-#     SampleSheet = py.SamplesSheetFinder(wb)
-#     (SampleList, SampleDescriptions) = py.SampleListDesc(SampleSheet)
-#     ConditionDictionary = py.SampleExpConditions(SampleSheet, SampleList)
-#     (SampleModDefDict, newSampleList) = py.SampleModMaker(SampleSheet,SampleList,SampleDescriptions,ConditionDictionary,ExpName,doc)
+def SamplesTest(wb, modlist, newmodlist, moddict, samplelist, sampledescriptions, expconditions, expname, doc):
+    # locating "Samples" sheet 
+    SampleSheet = py.SamplesSheetFinder(wb)
+    assert SampleSheet
+
+    # extracting the list of Samples and their corresponding descriptions
+    (SampleList, SampleDescriptions) = py.SampleListDesc(SampleSheet)
+    assert SampleList == samplelist
+    assert SampleDescriptions == sampledescriptions
+
+    # creating a dictionary storing all experimental conditions
+    ConditionDictionary = py.SampleExpConditions(SampleSheet, SampleList)
+    assert len(ConditionDictionary) <= 5
+    assert list(set(ConditionDictionary.keys()) - set(expconditions)) == []
+
+    # creating a dictionary of Sample Modules, with a list of ExpName and Sample Number concatenated together
+    (SampleModDefDict, newSampleList) = py.SampleModMaker(SampleSheet,SampleList,SampleDescriptions,ConditionDictionary,expname,doc)
+    assert len(SampleModDefDict) == len(SampleList)
+    assert list(set(SampleModDefDict.keys()) - set(newSampleList)) == []
+    for sample in newSampleList:
+        # checking that the type stored in the ModuleDef dictionary is a ModuleDefinition
+        if expname in sample:
+            assert True
+        assert type(SampleModDefDict[sample]) == py.sbol.libsbol.ModuleDefinition
+
+    # first checking that there are no Modules associated with each Sample ModuleDefinition
+    testmodlist = []
+    for sample in SampleModDefDict:
+        mods = SampleModDefDict[sample].modules.getAll()
+        for mod in mods:
+            testmodlist.append(mod)
+    assert testmodlist == []
+
+    # adding a Module corresponding to the DNA mix used in each sample to each Sample ModuleDef
+    ret = py.ModAdder(SampleList, newSampleList, SampleModDefDict, modlist, newmodlist, moddict, ConditionDictionary)
+    assert ret == 0
+    
+    # making sure that some of the Samples now have Modules
+    for sample in SampleModDefDict:
+        mods = SampleModDefDict[sample].modules.getAll()
+        for mod in mods:
+            testmodlist.append(mod)
+    assert testmodlist != []
+    for test in testmodlist:
+        assert type(test) == py.sbol.libsbol.Module
 
 
-#assert number of module defs in the document = number of samples
+def CompTest(plasmidlist_norepeats, doc):
+    CompDefDict = py.CompMaker(plasmidlist_norepeats,doc)
+    # checking that the CompDef dictionary contains all the plasmids in the plasmid list
+    assert list(set(CompDefDict.keys()) - set(plasmidlist_norepeats)) == []
+    # checking that the type stored in the CompDef dictionary is a ComponentDefiniiton
+    for comp in CompDefDict:
+        assert type(CompDefDict[comp]) == py.sbol.libsbol.ComponentDefinition 
+    # later add an assert that checks whether the Google API correctly extracted existing plasmid URI info
+    return CompDefDict
 
 
-# CompDefDict = py.CompMaker(PlasmidList_norepeat)
-# if CompDefDict:
-#     print('Test 9/10: creating ComponentDefinition for each plasmid type and adding description successful...')
-#     testcounter +=1
+def FuncTest(modlist, newmodlist, moddict, compdict, expsheet, unit, doc):
+    # there should be no functionalComponents before the function is called
+    for mod in moddict:
+        funcComps = moddict[mod].functionalComponents.getAll()
+        assert funcComps == []
+    ret = py.FuncMaker(modlist, newmodlist, moddict, compdict, expsheet, unit)
+    assert ret == 0
+    # making sure the ModuleDefinitions now have FunctionalComponents
+    for mod in moddict:
+        funcComps = moddict[mod].functionalComponents.getAll()
+        assert funcComps != []
+        for func in funcComps:
+            assert type(func) == py.sbol.libsbol.FunctionalComponent
 
-# FunctionalCompOutput = py.FuncMaker(NewModList,ModList,ExpSheet,CompDefDict,ModDefDict,Unit)
-# if FunctionalCompOutput == 0:
-#     print('Test 10/10: creating FunctionalComponents for each plasmid present in a Module, adding Annotations successful...')
-#     testcounter +=1
 
-# #ret = UploadFunc(username,password,projectID,projectName,projectDescription,experimentID,experimentName,experimentDescription,colURI)
-# #if ret #can be 0,1,or 2:
+"""
+CALLING THE TESTING FUNCTIONS
+"""
+(wb1,expsheet1) = ExpInfoTest(testfile1, expname1, unit1)
+(wb2,expsheet2) = ExpInfoTest(testfile2, expname2, unit2)
 
-# #need to test all the upload functions
-
-
-ExpSheet1 = ExpInfoTest(testfile1, expname1, unit1)
-ExpSheet2 = ExpInfoTest(testfile2, expname2, unit2)
-
-PlasModTest(modlist1, newmodlist1, plasmidlist1, plasmidlist1_norepeats, expname1, ExpSheet1)
+PlasModTest(modlist1, newmodlist1, plasmidlist1, plasmidlist1_norepeats, expname1, expsheet1)
 #PlasModTest(modlist2, newmodlist2, plasmidlist2, plasmidlist2_norepeats, expname2, ExpSheet2)
 
-ModuleDefinitionTest(modlist1, newmodlist1, ExpSheet1, doc1)
-#ModuleDefinitionTest(modlist2, newmodlist2, ExpSheet2, doc2)
+moddict1 = ModuleDefTest(modlist1, newmodlist1, expsheet1, doc1)
+#moddict2 = ModuleDefTest(modlist2, newmodlist2, ExpSheet2, doc2)
+
+SamplesTest(wb1,modlist1,newmodlist1,moddict1,samplelist1,sampledescriptions1,expconditions1,expname1,doc1)
+# SamplesTest(wb2,modlist2,newmodlist2,moddict2,samplelist2,sampledescriptions2,expconditions2,expname2,doc2)
+
+compdict1 = CompTest(plasmidlist1_norepeats, doc1)
+# compdict2 = CompTest(plasmidlist2_norepeats, doc2)
+
+FuncTest(modlist1, newmodlist1, moddict1, compdict1, expsheet1, unit1, doc1)
+# FuncTest(modlist2, newmodlist2, moddict2, compdict2, expsheet2, unit2, doc2)
+
 

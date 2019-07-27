@@ -223,6 +223,8 @@ def SampleModMaker(SampleSheet, SampleList, SampleDescriptions, ConditionDiction
             print('Error: Detecting two samples in "{}" sheet numbered {}.'.format(*formatlist))
             return(-1,-1)
         # creating annotations with Dox symbol, time, and any other experimental conditions listed
+        # make sure that it adds the annotations as functional components if the Dox is present, etc
+        # this means each mix for each sample will be different depending on the experimental conditions
         for cond in ConditionDictionary:
             tempURI = temp.identity + '#' + cond
             value = (ConditionDictionary[cond])[val]
@@ -250,9 +252,9 @@ def ModAdder(SampleList, newSampleList, SampleModDefDict, ModList, newModList, M
                 for mod in range(0,len(ModList)):
                     if codename == ModList[mod]:
                         displayID = newModList[mod]
-                        test = ModDef.modules.create(displayID)
+                        temp = ModDef.modules.create(displayID)
                         otherMD = ModDefDict[displayID]
-                        test.definition = otherMD.identity
+                        temp.definition = otherMD.identity
                         validCodeCounter += 1
                     if mod == (len(ModList) - 1) and validCodeCounter == 0:
                         print('Error: "{}" is listed as a Module name in the Code list but does not appear in the Module list.'.format(codename))
