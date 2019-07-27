@@ -1,2 +1,2 @@
-pysbol==2.3.0.post10
+pysbol==2.3.0.post12
 xlrd
