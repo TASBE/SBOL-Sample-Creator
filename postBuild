@@ -1,3 +1,4 @@
 jupyter contrib nbextension install --user
 jupyter nbextension enable --py widgetsnbextension
 jupyter nbextension install ipyupload --py --sys-prefix
+jupyter nbextension enable ipyupload --py --sys-prefix
