@@ -3,6 +3,7 @@ Create SBOL sample descriptions from Excel and upload them to SynBioHub.
 
 ## Getting Started
 To access the notebook immediately through a browser, click on the blue **"launch | binder"** button next to the title above. This may take a few minutes but does not require you to install any modules.
+*Note: if you leave the notebook inactive for 10 minutes, the browser will shut down and the notebook will need to be reloaded.*
 
 
 Otherwise, follow the instructions below if you want to run this notebook locally (from your terminal):
