@@ -2,4 +2,5 @@ pysbol
 xlrd
 jupyter_contrib_nbextensions
 ipywidgets
+ipyupload
 tqdm
