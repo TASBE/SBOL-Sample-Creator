@@ -93,9 +93,10 @@ SOME NOTES
     - systematically check for irregular character names
     - make sure to check the function where it makes sure that no two modules have the same name
     - don't assume that the variable already exists 
-    - put each call to test the SBOLconverter functions into a seperate function in this document
     - think about having multiple Excel spreadsheet test documents, with different module configurations
-    (stretch the limit of how Modules are being found in the document)
+       (stretch the limit of how Modules are being found in the document)
     - design the test Excel documents in a logical manner
     - figure out how to completely remove a component definition if it is not used in any of the modules
+    - figure out how to check if a user has the exact same experiment and project combo already on SynBioHub, then overwrite it if they say yes
+    - make sure the measures are correct
 """

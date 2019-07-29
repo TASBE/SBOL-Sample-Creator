@@ -342,12 +342,16 @@ def FuncMaker(ModList, newModList, ModDefDict, CompDefDict, ExperimentSheet, Uni
                 # setting annotations:
                 value = (ExperimentSheet.cell(r,col)).value
                 if value != '':
-                    stringval = '%s' % float('%6g' % value)
-                    # at most 6 significant figures
-                    temp.hasNumericalValue = TextProperty(temp,'http://bu.edu/dasha/#hasNumericalValue','0','1')
-                    temp.hasNumericalValue = stringval
-                    temp.hasUnit = TextProperty(temp,'http://bu.edu/dasha/#hasUnit','0','1')
-                    temp.hasUnit = Unit
+                    value = float('%6g' % value) # at most 6 significant figures
+                    temp.hasNumericalValue = FloatProperty(temp,'http://bu.edu/dasha/#hasNumericalValue','0','1')
+                    temp.hasNumericalValue = value
+                    temp.hasUnit = URIProperty(temp,'http://bu.edu/dasha/#hasUnit','0','1')
+                    temp.hasUnit = 'http://www.ontology-of-units-of-measure.org/resource/om-2/nanogram'
+                    temp.symbol = TextProperty(temp,'http://bu.edu/dasha/#symbol','0','1')
+                    temp.symbol = Unit
+                    temp.types = URIProperty(temp,'http://bu.edu/dasha/#types','0','1')
+                    temp.types = 'http://www.ebi.ac.uk/sbo/main/SBO:0000649'
+                    
                 elif value == '':
                     ModDefDict[mod].functionalComponents.remove(temp.identity)
             r+=1
