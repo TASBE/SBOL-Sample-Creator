@@ -2,6 +2,10 @@
 Create SBOL sample descriptions from Excel and upload them to SynBioHub.
 
 ## Getting Started
+To access the notebook immediately through a browser, click on the blue **"launch | binder"** button next to the title above. This may take a few minutes but does not require you to install any modules.
+
+
+Otherwise, follow the instructions below if you want to run this notebook locally (from your terminal):
 This project requires that you have Jupyter and Python 3 installed on your computer, as well as some additional modules and libraries that are detailed below.
 Installation instructions for Jupyter can be found here: https://jupyter.org/install
 It is recommended to use Anaconda to do this because it automatically installs both Jupyter Notebook and Python -- installation instructions can also be found through the link above.
