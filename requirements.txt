@@ -1,4 +1,3 @@
-pysbol == 2.3.2
 xlrd
 jupyter_contrib_nbextensions
 ipywidgets
