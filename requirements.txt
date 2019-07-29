@@ -1,3 +1,6 @@
+pip
+pip:
+  -pysbol
 xlrd
 jupyter_contrib_nbextensions
 ipywidgets
