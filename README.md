@@ -1,4 +1,4 @@
-# SBOL-Sample-Creator [![Build Status](https://travis-ci.org/TASBE/SBOL-Sample-Creator.svg?branch=master)](https://travis-ci.org/TASBE/SBOL-Sample-Creator)
+# SBOL-Sample-Creator [![Build Status](https://travis-ci.org/TASBE/SBOL-Sample-Creator.svg?branch=master)](https://travis-ci.org/TASBE/SBOL-Sample-Creator)[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/TASBE/SBOL-Sample-Creator/master?urlpath=https%3A%2F%2Fgithub.com%2FTASBE%2FSBOL-Sample-Creator%2Fblob%2Fmaster%2FSynBioHub%2520Data%2520Visualization.ipynb)
 Create SBOL sample descriptions from Excel and upload them to SynBioHub.
 
 ## Getting Started
