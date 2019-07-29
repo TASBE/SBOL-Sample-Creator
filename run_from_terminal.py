@@ -40,7 +40,7 @@ py.ModAdder(SampleList,newSampleList,SampleModDefDict,ModList,newModList,ModDefD
 CompDefDict = py.CompMaker(PlasmidList_norepeat,doc)
 
 #checking if components exist in LCP Dictionary
-py.LCPDictionaryCaller()
+#py.LCPDictionaryCaller()
 
 # creating FunctionalComponents for each plasmid within each DNA mix
 py.FuncMaker(ModList, newModList, ModDefDict, CompDefDict, ExpSheet, Unit)
@@ -63,24 +63,39 @@ rest = username.split(sep, 1)[0]
 projectURI = "https://synbiohub.org/user/" + rest + "/" + projectID + "/" + projectID + "_collection/" + projectVersion
 retVal = py.UploadFunc(username, password, experimentID, experimentName, experimentDescription, projectURI, doc)
 if retVal == 1:
-   print('No project with the displayID "{}" found.'.format(projectID))
-   answer = input('Do you want to create a new project with this displayID? (y/n)')
-   if answer == 'y':
-         formatlist = [projectID,experimentID]
-         print('Creating a new project with displayID "{}" containing an experiment with displayID "{}".'.format(*formatlist))
-         doc.displayId = projectID
-         doc.name = projectName
-         doc.description = projectDescription
-         doc.version = projectVersion
-         print(doc)
-         py.NewProjUpload(username,password,doc)
-         print(projectURI)
-         sys.exit()
-   elif answer == 'n':
-         print('Upload stopped.')
-         sys.exit()
+       print('No project with the displayID "{}" found.'.format(projectID))
+       answer = input('Do you want to create a new project with this displayID? (y/n)')
+       if answer == 'y':
+              formatlist = [projectID,experimentID]
+              print('Creating a new project with displayID "{}" containing an experiment with displayID "{}".'.format(*formatlist))
+              doc.displayId = projectID
+              doc.name = projectName
+              doc.description = projectDescription
+              doc.version = projectVersion
+              py.NewProjUpload(username,password,doc)
+              print(projectURI)
+              sys.exit()
+       elif answer == 'n':
+              print('Upload stopped.')
+              sys.exit()
 elif retVal == 2:
        print(projectURI)
        sys.exit()
 else:
        sys.exit()
+
+
+
+"""
+SOME NOTES
+"""
+"""
+    - systematically check for irregular character names
+    - make sure to check the function where it makes sure that no two modules have the same name
+    - don't assume that the variable already exists 
+    - put each call to test the SBOLconverter functions into a seperate function in this document
+    - think about having multiple Excel spreadsheet test documents, with different module configurations
+    (stretch the limit of how Modules are being found in the document)
+    - design the test Excel documents in a logical manner
+    - figure out how to completely remove a component definition if it is not used in any of the modules
+"""

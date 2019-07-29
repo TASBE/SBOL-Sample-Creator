@@ -172,10 +172,10 @@ CALLING THE TESTING FUNCTIONS
 (wb2,expsheet2) = ExpInfoTest(testfile2, expname2, unit2)
 
 PlasModTest(modlist1, newmodlist1, plasmidlist1, plasmidlist1_norepeats, expname1, expsheet1)
-#PlasModTest(modlist2, newmodlist2, plasmidlist2, plasmidlist2_norepeats, expname2, ExpSheet2)
+# PlasModTest(modlist2, newmodlist2, plasmidlist2, plasmidlist2_norepeats, expname2, ExpSheet2)
 
 moddict1 = ModuleDefTest(modlist1, newmodlist1, expsheet1, doc1)
-#moddict2 = ModuleDefTest(modlist2, newmodlist2, ExpSheet2, doc2)
+# moddict2 = ModuleDefTest(modlist2, newmodlist2, ExpSheet2, doc2)
 
 SamplesTest(wb1,modlist1,newmodlist1,moddict1,samplelist1,sampledescriptions1,expconditions1,expname1,doc1)
 # SamplesTest(wb2,modlist2,newmodlist2,moddict2,samplelist2,sampledescriptions2,expconditions2,expname2,doc2)

@@ -226,16 +226,17 @@ def SampleModMaker(SampleSheet, SampleList, SampleDescriptions, ConditionDiction
         # make sure that it adds the annotations as functional components if the Dox is present, etc
         # this means each mix for each sample will be different depending on the experimental conditions
         for cond in ConditionDictionary:
-            tempURI = temp.identity + '#' + cond
             value = (ConditionDictionary[cond])[val]
             if value != '':
                 if is_number(value):
                     stringval = '%s' % float('%6g' % value)
+                    rdf = 'http://bu.edu/dasha/#' + str(cond)
+                    newprop = TextProperty(temp,rdf,'0','1',stringval)
                     # at most 6 significant figures
-                    #temp.setAnnotation(tempURI,stringval)
                 else:
                     stringval = value
-                    #temp.setAnnotation(tempURI,stringval)
+                    rdf = 'http://bu.edu/dasha/#' + str(cond)
+                    newprop = TextProperty(temp,rdf,'0','1',stringval)
     return (SampleModDefDict, newSampleList)
 
 # NEXT STEP: have the computer extract information about the condition keys (aka each explanation) so that when adding annotation it can be added as 0 ng instead of - or 100 ng instead of +
@@ -250,7 +251,7 @@ def ModAdder(SampleList, newSampleList, SampleModDefDict, ModList, newModList, M
                 isthereCode = 1
                 codename = (ConditionDictionary[cond])[val]
                 for mod in range(0,len(ModList)):
-                    if codename == ModList[mod]:
+                    if codename.upper() == ModList[mod].upper():
                         displayID = newModList[mod]
                         temp = ModDef.modules.create(displayID)
                         otherMD = ModDefDict[displayID]
@@ -339,17 +340,14 @@ def FuncMaker(ModList, newModList, ModDefDict, CompDefDict, ExperimentSheet, Uni
                 temp.direction = SBOL_DIRECTION_NONE
                 
                 # setting annotations:
-                valueURI = temp.identity + '#hasNumericalValue'
                 value = (ExperimentSheet.cell(r,col)).value
                 if value != '':
                     stringval = '%s' % float('%6g' % value)
                     # at most 6 significant figures
-                    #temp.setAnnotation(valueURI,stringval)
-                    # temp.hasNumericalValue = FloatProperty(temp,'http://bu.edu/dasha/#hasNumericalValue','0','1')
-                    # temp.hasNumericalValue = 10.0
-                    # ^new way to create annotations, work in progress
-                    unitsURI = temp.identity + '#hasUnit'
-                    #temp.setAnnotation(unitsURI,Unit)
+                    temp.hasNumericalValue = TextProperty(temp,'http://bu.edu/dasha/#hasNumericalValue','0','1')
+                    temp.hasNumericalValue = stringval
+                    temp.hasUnit = TextProperty(temp,'http://bu.edu/dasha/#hasUnit','0','1')
+                    temp.hasUnit = Unit
                 elif value == '':
                     ModDefDict[mod].functionalComponents.remove(temp.identity)
             r+=1
@@ -359,22 +357,30 @@ def FuncMaker(ModList, newModList, ModDefDict, CompDefDict, ExperimentSheet, Uni
 # creating a Collection containing all the objects in the Document (Experiment Collection) and either adding it to an existing Project Collection or creating a new Project Collection. Logging in and uploading everything to SynBioHub
 def UploadFunc(username, password, experimentID, experimentName, experimentDescription, projectURI, doc):
     shop = PartShop('https://synbiohub.org')
-    shop.login(username, password)
+    try:
+        shop.login(username, password)
+    except RuntimeError as e:
+        print(e)
+        return(0)
     subcollection = Collection(experimentID)
     subcollection.name = experimentName
     subcollection.description = experimentDescription
     uriList = [obj.identity for obj in doc]
     subcollection.members = subcollection.members + uriList
     doc.addCollection(subcollection)
-    result = shop.submit(doc,projectURI,2) # 2 means merge
-    if result == 'Submission id and version does not exist':
-        return(1)
-    elif result == 'Submission successful' or result == 'Successfully uploaded':
-        return(2)
-    else:
+    try:
+        result = shop.submit(doc,projectURI,2) # 2 means merge
         print(result)
-        subcollection = doc.collections.remove(subcollection.identity)
-        return(0)
+        if result == 'Submission successful' or result == 'Successfully uploaded':
+            return(2)
+    except RuntimeError as e:
+        e = str(e)
+        if e == 'HTTP post request failed with: Submission id and version does not exist':
+            return(1)
+        else:
+            print(e)
+            subcollection = doc.collections.remove(subcollection.identity)
+            return(0)
 
 
 # uploader if the user is creating a new Project Collection
