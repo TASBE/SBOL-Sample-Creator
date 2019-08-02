@@ -47,10 +47,14 @@ expconditions1 = ['DOX', 'DOSE', 'Code', 'BaseDox', '10xDox']
 DEFINING THE TESTING FUNCTIONS
 """
 
-def APItest():
-    # extracting the components already in the LCP Dictionary
-    existingNamesDict = py.LCPDictionaryCaller()
-    return existingNamesDict
+existingNamesDict = {'IPTG': 'https://synbiohub.programmingbiology.org/user/lcpdictionary/LCP/IPTG/1', 'L-arabinose': 'https://synbiohub.programmingbiology.org/user/lcpdictionary/LCP/L0x2Darabinose/1', 'aTc': 'https://synbiohub.programmingbiology.org/user/lcpdictionary/LCP/aTc/1', 'SpheroTech Rainbow Beads': 'https://synbiohub.programmingbiology.org/user/lcpdictionary/LCP/SpheroTech0x20Rainbow0x20Beads/1', 'Doxycycline': 'https://synbiohub.programmingbiology.org/user/lcpdictionary/LCP/Doxycycline/1', 'Dox': 'https://synbiohub.programmingbiology.org/user/lcpdictionary/LCP/Doxycycline/1', 'pBW465 Constitive Red': 'https://synbiohub.programmingbiology.org/user/lcpdictionary/LCP/pBW4650x20Constitive0x20Red/1', 'pBW465': 'https://synbiohub.programmingbiology.org/user/lcpdictionary/LCP/pBW4650x20Constitive0x20Red/1', 'BW465': 'https://synbiohub.programmingbiology.org/user/lcpdictionary/LCP/pBW4650x20Constitive0x20Red/1'}
+
+# cannot do it yet because cant upload client key 
+
+# def APItest():
+#     # extracting the components already in the LCP Dictionary
+#     existingNamesDict = py.LCPDictionaryCaller()
+#     return existingNamesDict
 
 def ExpInfoTest(testfile, expname, unit):
     # locating Excel file
@@ -176,7 +180,7 @@ def FuncTest(modlist, newmodlist, moddict, compdict, expsheet, unit, doc):
 CALLING THE TESTING FUNCTIONS
 """
 
-existingNamesDict = APItest()
+#existingNamesDict = APItest()
 
 (wb1,expsheet1) = ExpInfoTest(testfile1, expname1, unit1)
 (wb2,expsheet2) = ExpInfoTest(testfile2, expname2, unit2)
