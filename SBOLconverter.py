@@ -145,13 +145,13 @@ MODULE DEFINITIONS -- DNA MIXES
 # taking the module name/type of plasmid mix and putting a '_' where the spaces are, then composing the ModuleNames into a new list
 def ModListCleaner(ModList, ExperimentName):
     clean = lambda varStr: re.sub('\W|^(?=\d)','_', varStr)
-    import urllib.parse
-    ExperimentName = urllib.parse.quote(ExperimentName)
+    #import urllib.parse
+    #ExperimentName = urllib.parse.quote(ExperimentName)
     #'JHT6_codename_1_DNA_X' 
             # vs.
     #'JHT6_codename_10x3ADNA0x20X'
-    newModList = [(ExperimentName.replace('%','0x') + '_codename_' + urllib.parse.quote(ModName).replace('%','0x')) for ModName in ModList]
-    #newModList = [(clean(ExperimentName) + '_codename' + clean(ModName)) for ModName in ModList]
+    #newModList = [(ExperimentName.replace('%','0x') + '_codename_' + urllib.parse.quote(ModName).replace('%','0x')) for ModName in ModList]
+    newModList = [(clean(ExperimentName) + '_codename' + clean(ModName)) for ModName in ModList]
     return(newModList)
 
 
