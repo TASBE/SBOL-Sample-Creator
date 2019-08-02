@@ -269,7 +269,7 @@ def SampleModMaker(SampleSheet, SampleList, SampleDescriptions, ConditionDiction
                     else:
                         compDisp = cond
                     tempcomp = ComponentDefinition(compDisp)
-                    temp2 = SampleModDefDict[displayID].functionalComponents.create(cond)
+                    temp2 = SampleModDefDict[displayID].functionalComponents.create(compDisp)
                     try:
                         temp2.definition = existingNamesDict[cond]
                     except:
