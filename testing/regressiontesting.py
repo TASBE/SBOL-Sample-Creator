@@ -47,6 +47,11 @@ expconditions1 = ['DOX', 'DOSE', 'Code', 'BaseDox', '10xDox']
 DEFINING THE TESTING FUNCTIONS
 """
 
+def APItest():
+    # extracting the components already in the LCP Dictionary
+    existingNamesDict = py.LCPDictionaryCaller()
+    return existingNamesDict
+
 def ExpInfoTest(testfile, expname, unit):
     # locating Excel file
     wb = py.MakeBook(testfile)
@@ -92,7 +97,7 @@ def ModuleDefTest(modlist, newmodlist, ExpSheet, doc):
     return ModDefDict
 
 
-def SamplesTest(wb, modlist, newmodlist, moddict, samplelist, sampledescriptions, expconditions, expname, doc):
+def SamplesTest(wb, modlist, newmodlist, moddict, samplelist, sampledescriptions, expconditions, expname, existingNamesDict, doc):
     # locating "Samples" sheet 
     SampleSheet = py.SamplesSheetFinder(wb)
     assert SampleSheet
@@ -107,8 +112,11 @@ def SamplesTest(wb, modlist, newmodlist, moddict, samplelist, sampledescriptions
     assert len(ConditionDictionary) <= 5
     assert list(set(ConditionDictionary.keys()) - set(expconditions)) == []
 
+    # extracting information about each experimental condition (its key and explanation)
+    ConditionKeyDict = py.ConditionKeyExtractor(wb)
+
     # creating a dictionary of Sample Modules, with a list of ExpName and Sample Number concatenated together
-    (SampleModDefDict, newSampleList) = py.SampleModMaker(SampleSheet,SampleList,SampleDescriptions,ConditionDictionary,expname,doc)
+    (SampleModDefDict, newSampleList) = py.SampleModMaker(SampleSheet,SampleList,SampleDescriptions,ConditionDictionary,expname,existingNamesDict,ConditionKeyDict,doc)
     assert len(SampleModDefDict) == len(SampleList)
     assert list(set(SampleModDefDict.keys()) - set(newSampleList)) == []
     for sample in newSampleList:
@@ -167,6 +175,9 @@ def FuncTest(modlist, newmodlist, moddict, compdict, expsheet, unit, doc):
 """
 CALLING THE TESTING FUNCTIONS
 """
+
+existingNamesDict = APItest()
+
 (wb1,expsheet1) = ExpInfoTest(testfile1, expname1, unit1)
 (wb2,expsheet2) = ExpInfoTest(testfile2, expname2, unit2)
 
@@ -176,8 +187,8 @@ PlasModTest(modlist1, newmodlist1, plasmidlist1, plasmidlist1_norepeats, expname
 moddict1 = ModuleDefTest(modlist1, newmodlist1, expsheet1, doc1)
 # moddict2 = ModuleDefTest(modlist2, newmodlist2, ExpSheet2, doc2)
 
-SamplesTest(wb1,modlist1,newmodlist1,moddict1,samplelist1,sampledescriptions1,expconditions1,expname1,doc1)
-# SamplesTest(wb2,modlist2,newmodlist2,moddict2,samplelist2,sampledescriptions2,expconditions2,expname2,doc2)
+SamplesTest(wb1,modlist1,newmodlist1,moddict1,samplelist1,sampledescriptions1,expconditions1,expname1,existingNamesDict,doc1)
+# SamplesTest(wb2,modlist2,newmodlist2,moddict2,samplelist2,sampledescriptions2,expconditions2,expname2,existingNamesDict,doc2)
 
 compdict1 = CompTest(plasmidlist1_norepeats, doc1)
 # compdict2 = CompTest(plasmidlist2_norepeats, doc2)

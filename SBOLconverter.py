@@ -58,23 +58,11 @@ def ConditionKeyExtractor(wb):
                 cond = NameSheet.cell(r,1).value
                 ConditionKeyDict[cond] = {}
                 tempDict = ConditionKeyDict[cond]
-                # r += 1 # now on the row with 'Key' and 'Explanation' Headers
-                # dictname1 = NameSheet.cell(r,0).value
-                # dictname2 = NameSheet.cell(r,1).value
-                # r += 1
                 r += 2
                 while NameSheet.cell(r,0).value != '':
-                    # tempDict = {}
-                    # tempDict[dictname1] = NameSheet.cell(r,0).value
-                    # tempDict[dictname2] = NameSheet.cell(r,1).value
-                    # ConditionKeyDict[cond].append(tempDict)
                     tempDict[NameSheet.cell(r,0).value] = NameSheet.cell(r,1).value
-                    #ConditionKeyDict[cond] = tempDict
                     r += 1
     return(ConditionKeyDict)
-
-        #if cell_obj.value == 'Shortened Key' or cell_obj.value == 'Short Code':
-
 
 # extracting the unit from "Experiment DNA sample" sheet
 def UnitCollectionFunc(ExperimentSheet):
