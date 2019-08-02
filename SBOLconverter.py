@@ -265,10 +265,10 @@ def SampleModMaker(SampleSheet, SampleList, SampleDescriptions, ConditionDiction
                     codeVal = ''
                 if cond.lower() != 'time' and cond.lower() != 'code' and conditionValue != '0' and codeVal != '0':
                     if is_number(cond[0]):
-                        displayID = '_' + cond
+                        compDisp = '_' + cond
                     else:
-                        displayID = cond
-                    tempcomp = ComponentDefinition(displayID)
+                        compDisp = cond
+                    tempcomp = ComponentDefinition(compDisp)
                     temp2 = SampleModDefDict[displayID].functionalComponents.create(cond)
                     try:
                         temp2.definition = existingNamesDict[cond]
