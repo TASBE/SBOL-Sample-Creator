@@ -168,7 +168,7 @@ def FuncTest(modlist, newmodlist, moddict, compdict, expsheet, unit, doc):
     for mod in moddict:
         funcComps = moddict[mod].functionalComponents.getAll()
         assert funcComps == []
-    ret = py.FuncMaker(modlist, newmodlist, moddict, compdict, expsheet, unit)
+    ret = py.FuncMaker(modlist, newmodlist, moddict, compdict, expsheet, unit, doc)
     assert ret == 0
     # making sure the ModuleDefinitions now have FunctionalComponents
     for mod in moddict:
