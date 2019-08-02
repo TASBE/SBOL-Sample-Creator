@@ -38,16 +38,42 @@ def ExpNameFinder(wb):
     for r in range(0,NameSheet.nrows):
         cell_obj = NameSheet.cell(r,0)
         if (cell_obj.value == LookingFor):
-            break
+            r+=1
+            ExperimentName = (NameSheet.cell(r,0)).value
+            return(ExperimentName)
         else:
             r+=1
-    if (r == NameSheet.nrows):
-        print('Error: Experiment name not found in file. It must be in the first column of the "Experiment" sheet under the "Experiment Name" header.')
-        return(-1)
-    else:
-        r+=1
-        ExperimentName = (NameSheet.cell(r,0)).value
-    return(ExperimentName)
+    print('Error: Experiment name not found in file. It must be in the first column of the "Experiment" sheet under the "Experiment Name" header.')
+    return(-1)
+
+def ConditionKeyExtractor(wb):
+    ConditionKeyDict = {}
+    NameSheet = wb.sheet_by_name('Experiment')
+    for condNum in range(0,5):
+        LookingFor = 'Condition Key ' + str(condNum + 1)
+        for r in range(0,NameSheet.nrows):
+            cell_obj = NameSheet.cell(r,0)
+            if cell_obj.value == LookingFor:
+                r += 1
+                cond = NameSheet.cell(r,1).value
+                ConditionKeyDict[cond] = {}
+                tempDict = ConditionKeyDict[cond]
+                # r += 1 # now on the row with 'Key' and 'Explanation' Headers
+                # dictname1 = NameSheet.cell(r,0).value
+                # dictname2 = NameSheet.cell(r,1).value
+                # r += 1
+                r += 2
+                while NameSheet.cell(r,0).value != '':
+                    # tempDict = {}
+                    # tempDict[dictname1] = NameSheet.cell(r,0).value
+                    # tempDict[dictname2] = NameSheet.cell(r,1).value
+                    # ConditionKeyDict[cond].append(tempDict)
+                    tempDict[NameSheet.cell(r,0).value] = NameSheet.cell(r,1).value
+                    #ConditionKeyDict[cond] = tempDict
+                    r += 1
+    return(ConditionKeyDict)
+
+        #if cell_obj.value == 'Shortened Key' or cell_obj.value == 'Short Code':
 
 
 # extracting the unit from "Experiment DNA sample" sheet
@@ -112,7 +138,6 @@ def DescriptionFinder(LookingFor, sheetname):
                 return (r,c)
     return(-1,-1)
 
-
 """""
 MODULE DEFINITIONS -- DNA MIXES
 """""
@@ -120,7 +145,13 @@ MODULE DEFINITIONS -- DNA MIXES
 # taking the module name/type of plasmid mix and putting a '_' where the spaces are, then composing the ModuleNames into a new list
 def ModListCleaner(ModList, ExperimentName):
     clean = lambda varStr: re.sub('\W|^(?=\d)','_', varStr)
-    newModList = [(clean(ExperimentName) + '_codename' + clean(ModName)) for ModName in ModList]
+    import urllib.parse
+    ExperimentName = urllib.parse.quote(ExperimentName)
+    #'JHT6_codename_1_DNA_X' 
+            # vs.
+    #'JHT6_codename_10x3ADNA0x20X'
+    newModList = [(ExperimentName.replace('%','0x') + '_codename_' + urllib.parse.quote(ModName).replace('%','0x')) for ModName in ModList]
+    #newModList = [(clean(ExperimentName) + '_codename' + clean(ModName)) for ModName in ModList]
     return(newModList)
 
 
@@ -207,7 +238,7 @@ def SampleExpConditions(SampleSheet, SampleList):
     return ConditionDictionary
 
 # creating Module Defs
-def SampleModMaker(SampleSheet, SampleList, SampleDescriptions, ConditionDictionary, ExperimentName,doc):
+def SampleModMaker(SampleSheet, SampleList, SampleDescriptions, ConditionDictionary, ExperimentName, existingNamesDict, ConditionKeyDict, doc):
     SampleModDefDict = {}
     clean = lambda varStr: re.sub('\W|^(?=\d)','_', varStr)
     newSampleList = [(clean(ExperimentName) + '_sample_' + str(round(SampleName))) for SampleName in SampleList]
@@ -224,19 +255,41 @@ def SampleModMaker(SampleSheet, SampleList, SampleDescriptions, ConditionDiction
             return(-1,-1)
         # creating annotations with Dox symbol, time, and any other experimental conditions listed
         # make sure that it adds the annotations as functional components if the Dox is present, etc
-        # this means each mix for each sample will be different depending on the experimental conditions
         for cond in ConditionDictionary:
             value = (ConditionDictionary[cond])[val]
+            uriLink = 'http://bu.edu/dasha/#'
+            rdf = uriLink + str(cond)
             if value != '':
                 if is_number(value):
-                    stringval = '%s' % float('%6g' % value)
-                    rdf = 'http://bu.edu/dasha/#' + str(cond)
-                    newprop = TextProperty(temp,rdf,'0','1',stringval)
-                    # at most 6 significant figures
+                    stringval = '%s' % float('%6g' % value) # at most 6 significant figures
                 else:
                     stringval = value
-                    rdf = 'http://bu.edu/dasha/#' + str(cond)
-                    newprop = TextProperty(temp,rdf,'0','1',stringval)
+                # extracting value and its explanation from ConditionDictionary
+                conditionValue = stringval
+                if cond in ConditionKeyDict:
+                    conditionExplanation = (ConditionKeyDict[cond])[value]
+                else:
+                    conditionExplanation = ''
+                counter = 0
+                try:
+                    codeVal = conditionExplanation.split()[0]
+                except:
+                    codeVal = ''
+                if cond.lower() != 'time' and cond.lower() != 'code' and conditionValue != '0' and codeVal != '0':
+                    tempcomp = ComponentDefinition(cond)
+                    temp2 = SampleModDefDict[displayID].functionalComponents.create(cond)
+                    try:
+                        temp2.definition = existingNamesDict[cond]
+                    except:
+                        temp2.definition = tempcomp.identity
+                    counter += 1
+                    rdf1 = uriLink + 'hasKey'
+                    rdf2 = uriLink + 'hasExplanation'
+                    keyVal = TextProperty(temp2,rdf1,'0','1',conditionValue)
+                    if conditionExplanation != '':
+                        explanationVal = TextProperty(temp2,rdf2,'0','1',conditionExplanation)
+                if counter == 0 and conditionValue != '0' and codeVal != '0':
+                    newprop = TextProperty(temp,rdf,'0','1',conditionValue + ' ' + conditionExplanation)
     return (SampleModDefDict, newSampleList)
 
 # NEXT STEP: have the computer extract information about the condition keys (aka each explanation) so that when adding annotation it can be added as 0 ng instead of - or 100 ng instead of +
@@ -280,18 +333,16 @@ COMPONENT DEFINITIONS
 """""
 
 # creating ComponentDefinition for each plasmid type and adding description, key is the displayID and value is the CD
-def CompMaker(PlasmidList_norepeat,doc):
+def CompMaker(PlasmidList_norepeat, existingNamesDict, doc):
     CompDefDict = {}
     # populating Component Dictionary
     for val in range(0,len(PlasmidList_norepeat)):
         displayID = PlasmidList_norepeat[val]
-        # existingNames = DictionaryNamesFinder()
-        # for name in existingNames:
-            #if displayID != name:
         temp = ComponentDefinition(displayID,BIOPAX_DNA) # encodes all plasmids as type BIOPAX_DNA
+        for name in existingNamesDict:
+            if displayID == name:
+                temp.identity = existingNamesDict[name] # links to an existing component from the dictionary
         CompDefDict[displayID] = temp
-            #else:
-                # add statememnts that find the URI of the existing part, then add it to the component dictionary
     # adding the role to each component and then adding all component definitions to the doc
     for comp in CompDefDict:
         CompDefDict[comp].roles = SO_PLASMID
@@ -312,7 +363,7 @@ def FindMod(val, ModList, ExperimentSheet):
     return(-1,-1)
 
 # creating FunctionalComponents for each plasmid present in each Module, and then adding the appropriate annotations
-def FuncMaker(ModList, newModList, ModDefDict, CompDefDict, ExperimentSheet, Unit):
+def FuncMaker(ModList, newModList, ModDefDict, CompDefDict, ExperimentSheet, Unit, doc):
     # FunCompDict = {}
     for val in range(0,len(ModList)):
         mod = newModList[val]
@@ -353,10 +404,22 @@ def FuncMaker(ModList, newModList, ModDefDict, CompDefDict, ExperimentSheet, Uni
                     temp.types = 'http://www.ebi.ac.uk/sbo/main/SBO:0000649'
                     
                 elif value == '':
+                    # figure out how to delete component definition for unused components here
                     ModDefDict[mod].functionalComponents.remove(temp.identity)
             r+=1
+    funclist = ''
+    toRemove = []
+    for mod in ModDefDict:
+        funcs = ModDefDict[mod].functionalComponents
+        for func in funcs:
+            funclist = funclist + func.identity
+    for comp in CompDefDict:
+        if comp not in funclist:
+            doc.componentDefinitions.remove(CompDefDict[comp].identity)
+            toRemove.append(comp)
+    for rem in toRemove:
+        del CompDefDict[rem]
     return 0
-
 
 # creating a Collection containing all the objects in the Document (Experiment Collection) and either adding it to an existing Project Collection or creating a new Project Collection. Logging in and uploading everything to SynBioHub
 def UploadFunc(username, password, experimentID, experimentName, experimentDescription, projectURI, doc):
@@ -396,56 +459,40 @@ def NewProjUpload(username, password, doc):
     return(0)
 
 
-#new function to call Google API and check if the LCP dictionary has the component
+# new function to call Google API and check if the LCP dictionary has the component
 """
 ALSO!! NEED TO ADD DOX AS A FUNCTIONAL COMPONENT BECAUSE IT IS PART OF THE MIX
 """
 
-# def DictionaryNamesFinder():
-#     import gspread
-#     from oauth2client.service_account import ServiceAccountCredentials
-#     # use creds to create a client to interact with the Google Drive API
-#     scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-#     creds = ServiceAccountCredentials.from_json_keyfile_name('client_info.json', scope)
-#     client = gspread.authorize(creds)
+def LCPDictionaryCaller():
+    import gspread
+    from oauth2client.service_account import ServiceAccountCredentials
+    # use creds to create a client to interact with the Google Drive API
+    scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
+    creds = ServiceAccountCredentials.from_json_keyfile_name('client_info.json', scope)
+    client = gspread.authorize(creds)
 
-#     #opening the spreadsheet
-#     spreadsheet = client.open("LCP Project Dictionary")
-#     worksheetNames = ['Reagent', 'Strain', 'Genetic Construct']
-#     existingNames = []
-#     for sheetName in worksheetNames:
-#         currentSheet = spreadsheet.worksheet(sheetName)
-#         currentInfo = currentSheet.get_all_records(False,2,'',False)
-#         if len(currentInfo) != 0:
-#             for index in range(0,len(currentInfo)):
-#                 currentDictionary = currentInfo[index]
-#                 existingNames.append(currentDictionary['Common Name'])
-#                 keysList = currentDictionary.keys()
-#                 for key in keysList:
-#                     if 'UID' in key and currentDictionary[key] is not '':
-#                         existingNames.append(currentDictionary[key])
-#     return existingNames
-                
-
-    # figure out what you are searching the dictionary for -- definitely plasmids, but also reagents and strians
-    # maybe you should have 3 functions:
-    # -- one that searches for plasmids, taking the plasmid list as input
-    # -- one that searches for reagents, taking the experimental conditions list as input
-    # -- one that searches for strains, (what even is that?)
-    # They all return an array of any matching items, with item displayID (as defined by the user) and the item URI (as defined by LCP)
-
-    # maybe create a dictionary that is an array of dictionaries, each containing first 
-
-    #def NameFinder(sheet,partList):
-    #    for part in partList:
-    #        sheet.find(part)
-
-
-    # Extract and print all of the values
-    #sheet1 = spreadsheet.
-    #list_of_hashes = sheet.get_all_values()
-    #print(list_of_hashes)
-
-
-    #sheet called 'Genetic Construct' and 'Reagant'
-
+    #opening the spreadsheet
+    spreadsheet = client.open("LCP Project Dictionary")
+    worksheetNames = ['Reagent', 'Strain', 'Genetic Construct']
+    existingNamesDict = {}
+    for sheetName in worksheetNames:
+        currentSheet = spreadsheet.worksheet(sheetName)
+        currentInfo = currentSheet.get_all_records(False,2,'',False)
+        if len(currentInfo) != 0:
+            for index in range(0,len(currentInfo)):
+                currentDictionary = currentInfo[index]
+                existingNamesDict[currentDictionary['Common Name']] = currentDictionary['SynBioHub URI']
+                keysList = currentDictionary.keys()
+                for key in keysList:
+                    if 'UID' in key and currentDictionary[key] is not '':
+                        if ',' in currentDictionary[key]: # parses a list of UID's that are separated by a comma into separate entries
+                            tempkeylist = currentDictionary[key].split(',')
+                            for tempkey in tempkeylist:
+                                if tempkey[0] == ' ': # getting rid of any spaces that might have remained after the parsing
+                                    tempkey = tempkey[1:] 
+                                existingNamesDict[tempkey] = currentDictionary['SynBioHub URI']
+                        else:
+                            existingNamesDict[(currentDictionary[key])] = currentDictionary['SynBioHub URI']
+    return existingNamesDict
+      

@@ -19,11 +19,15 @@ ExperimentSheetName = 'Experiment DNA sample'
 wb = py.MakeBook(file_location)
 ExpSheet = py.ExpSheetFinder(wb,ExperimentSheetName)
 ExpName = py.ExpNameFinder(wb)
+ConditionKeyDict = py.ConditionKeyExtractor(wb)
 Unit = py.UnitCollectionFunc(ExpSheet)
 
 # extracting plasmid and DNA mix information
 (ModList,PlasmidList_orig) = py.PlasModList(ExpSheet)
 PlasmidList_norepeat = py.PlasNoRepeat(PlasmidList_orig)
+
+# extracting list of all Reagents, Strains, and Genetic Constructs present in the LCP Dictionary
+existingNamesDict = py.LCPDictionaryCaller()
 
 # creating ModuleDefinitions for DNA mixes
 newModList = py.ModListCleaner(ModList,ExpName)
@@ -33,17 +37,14 @@ ModDefDict = py.ModMaker(ModList,newModList,ExpSheet,doc)
 SampleSheet = py.SamplesSheetFinder(wb)
 (SampleList, SampleDescriptions) = py.SampleListDesc(SampleSheet)
 ConditionDictionary = py.SampleExpConditions(SampleSheet, SampleList)
-(SampleModDefDict, newSampleList) = py.SampleModMaker(SampleSheet,SampleList,SampleDescriptions,ConditionDictionary,ExpName,doc)
+(SampleModDefDict, newSampleList) = py.SampleModMaker(SampleSheet,SampleList,SampleDescriptions,ConditionDictionary,ExpName,existingNamesDict,ConditionKeyDict,doc)
 
 # Adding DNA mix reference to each Sample, creating ComponentDefinitions for each plasmid
 py.ModAdder(SampleList,newSampleList,SampleModDefDict,ModList,newModList,ModDefDict,ConditionDictionary)
-CompDefDict = py.CompMaker(PlasmidList_norepeat,doc)
-
-#checking if components exist in LCP Dictionary
-#py.LCPDictionaryCaller()
+CompDefDict = py.CompMaker(PlasmidList_norepeat,existingNamesDict,doc)
 
 # creating FunctionalComponents for each plasmid within each DNA mix
-py.FuncMaker(ModList, newModList, ModDefDict, CompDefDict, ExpSheet, Unit)
+py.FuncMaker(ModList, newModList, ModDefDict, CompDefDict, ExpSheet, Unit, doc)
 
 # getting user input for collection information
 projectID = input('Enter the project collection displayID: ')
@@ -96,7 +97,12 @@ SOME NOTES
     - think about having multiple Excel spreadsheet test documents, with different module configurations
        (stretch the limit of how Modules are being found in the document)
     - design the test Excel documents in a logical manner
-    - figure out how to completely remove a component definition if it is not used in any of the modules
     - figure out how to check if a user has the exact same experiment and project combo already on SynBioHub, then overwrite it if they say yes
     - make sure the measures are correct
+    - EXTRACT THE CONDITION KEY INFO
+    
+    if isnumber(ShortCode):
+       hasnumVal = shortcode
+       unit = explanation
+
 """

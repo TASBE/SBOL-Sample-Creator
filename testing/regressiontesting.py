@@ -141,7 +141,7 @@ def SamplesTest(wb, modlist, newmodlist, moddict, samplelist, sampledescriptions
 
 def CompTest(plasmidlist_norepeats, doc):
     CompDefDict = py.CompMaker(plasmidlist_norepeats,doc)
-    # checking that the CompDef dictionary contains all the plasmids in the plasmid list
+    # checking that the CompDef dictionary contains all the plasmids in the plasmid list at this point
     assert list(set(CompDefDict.keys()) - set(plasmidlist_norepeats)) == []
     # checking that the type stored in the CompDef dictionary is a ComponentDefiniiton
     for comp in CompDefDict:
@@ -163,7 +163,6 @@ def FuncTest(modlist, newmodlist, moddict, compdict, expsheet, unit, doc):
         assert funcComps != []
         for func in funcComps:
             assert type(func) == py.sbol.libsbol.FunctionalComponent
-
 
 """
 CALLING THE TESTING FUNCTIONS
