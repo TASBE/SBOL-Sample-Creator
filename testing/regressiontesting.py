@@ -153,7 +153,7 @@ def SamplesTest(wb, modlist, newmodlist, moddict, samplelist, sampledescriptions
 
 
 def CompTest(plasmidlist_norepeats, doc):
-    CompDefDict = py.CompMaker(plasmidlist_norepeats,doc)
+    CompDefDict = py.CompMaker(plasmidlist_norepeats,existingNamesDict,doc)
     # checking that the CompDef dictionary contains all the plasmids in the plasmid list at this point
     assert list(set(CompDefDict.keys()) - set(plasmidlist_norepeats)) == []
     # checking that the type stored in the CompDef dictionary is a ComponentDefiniiton
