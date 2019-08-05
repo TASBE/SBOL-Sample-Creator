@@ -1,9 +1,18 @@
+from __future__ import print_function
+
 from sbol import *
 import re
 import sys
 import xlrd
 import getpass
 import SBOLconverter as py
+
+import pickle
+import os.path
+from googleapiclient.discovery import build
+from google_auth_oauthlib.flow import InstalledAppFlow
+from google.auth.transport.requests import Request
+
 
 global doc
 doc = Document()
@@ -62,7 +71,9 @@ password = getpass.getpass(prompt='Enter your SynBioHub password: ')
 sep = '@'
 rest = username.split(sep, 1)[0]
 projectURI = "https://synbiohub.org/user/" + rest + "/" + projectID + "/" + projectID + "_collection/" + projectVersion
+print('ooh')
 retVal = py.UploadFunc(username, password, experimentID, experimentName, experimentDescription, projectURI, doc)
+print('haha')
 if retVal == 1:
        print('No project with the displayID "{}" found.'.format(projectID))
        answer = input('Do you want to create a new project with this displayID? (y/n)')
@@ -98,11 +109,8 @@ SOME NOTES
        (stretch the limit of how Modules are being found in the document)
     - design the test Excel documents in a logical manner
     - figure out how to check if a user has the exact same experiment and project combo already on SynBioHub, then overwrite it if they say yes
-    - make sure the measures are correct
-    - EXTRACT THE CONDITION KEY INFO
-    
-    if isnumber(ShortCode):
-       hasnumVal = shortcode
-       unit = explanation
 
+       WHY IS IT TAKING SO GODDAMN LONG TO UPLOAD EVERYTHING???
+
+-put print functions in the upload sections because actually what the fuck
 """

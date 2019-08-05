@@ -1,3 +1,4 @@
+from __future__ import print_function
 # Uncomment all import statements if NOT running with Jupyter Notebook
 # Follow README for installation instructions
 
@@ -10,6 +11,13 @@ import re
 import sys
 import xlrd
 import getpass
+
+import pickle    
+import os.path
+from googleapiclient.discovery import build
+from google_auth_oauthlib.flow import InstalledAppFlow
+from google.auth.transport.requests import Request
+
 
 # global doc
 # doc = Document()
@@ -429,6 +437,7 @@ def UploadFunc(username, password, experimentID, experimentName, experimentDescr
     doc.addCollection(subcollection)
     try:
         result = shop.submit(doc,projectURI,2) # 2 means merge
+        # took 1 min 13 seconds on 08/02
         print(result)
         if result == 'Submission successful' or result == 'Successfully uploaded':
             return(2)
@@ -445,6 +454,7 @@ def UploadFunc(username, password, experimentID, experimentName, experimentDescr
 # uploader if the user is creating a new Project Collection
 def NewProjUpload(username, password, doc):
     shop = PartShop('https://synbiohub.org')
+    # took 1 min 19 seconds on 08/02
     shop.login(username, password)
     result = shop.submit(doc)
     print(result)
@@ -452,39 +462,96 @@ def NewProjUpload(username, password, doc):
 
 
 # new function to call Google API and check if the LCP dictionary has the component
-"""
-ALSO!! NEED TO ADD DOX AS A FUNCTIONAL COMPONENT BECAUSE IT IS PART OF THE MIX
-"""
 
-def LCPDictionaryCaller():
-    import gspread
-    from oauth2client.service_account import ServiceAccountCredentials
-    # use creds to create a client to interact with the Google Drive API
-    scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-    creds = ServiceAccountCredentials.from_json_keyfile_name('client_info.json', scope)
-    client = gspread.authorize(creds)
+# def LCPDictionaryCaller():
+#     import gspread
+#     from oauth2client.service_account import ServiceAccountCredentials
+#     # use creds to create a client to interact with the Google Drive API
+#     scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
+#     creds = ServiceAccountCredentials.from_json_keyfile_name('client_info.json', scope)
+#     client = gspread.authorize(creds)
 
-    #opening the spreadsheet
-    spreadsheet = client.open("LCP Project Dictionary")
-    worksheetNames = ['Reagent', 'Strain', 'Genetic Construct']
-    existingNamesDict = {}
-    for sheetName in worksheetNames:
-        currentSheet = spreadsheet.worksheet(sheetName)
-        currentInfo = currentSheet.get_all_records(False,2,'',False)
-        if len(currentInfo) != 0:
-            for index in range(0,len(currentInfo)):
-                currentDictionary = currentInfo[index]
-                existingNamesDict[currentDictionary['Common Name']] = currentDictionary['SynBioHub URI']
-                keysList = currentDictionary.keys()
-                for key in keysList:
-                    if 'UID' in key and currentDictionary[key] is not '':
-                        if ',' in currentDictionary[key]: # parses a list of UID's that are separated by a comma into separate entries
-                            tempkeylist = currentDictionary[key].split(',')
-                            for tempkey in tempkeylist:
-                                if tempkey[0] == ' ': # getting rid of any spaces that might have remained after the parsing
-                                    tempkey = tempkey[1:] 
-                                existingNamesDict[tempkey] = currentDictionary['SynBioHub URI']
-                        else:
-                            existingNamesDict[(currentDictionary[key])] = currentDictionary['SynBioHub URI']
-    return existingNamesDict
+#     #opening the spreadsheet
+#     spreadsheet = client.open("LCP Project Dictionary")
+#     worksheetNames = ['Reagent', 'Strain', 'Genetic Construct']
+#     existingNamesDict = {}
+#     for sheetName in worksheetNames:
+#         currentSheet = spreadsheet.worksheet(sheetName)
+#         currentInfo = currentSheet.get_all_records(False,2,'',False)
+#         if len(currentInfo) != 0:
+#             for index in range(0,len(currentInfo)):
+#                 currentDictionary = currentInfo[index]
+#                 existingNamesDict[currentDictionary['Common Name']] = currentDictionary['SynBioHub URI']
+#                 keysList = currentDictionary.keys()
+#                 for key in keysList:
+#                     if 'UID' in key and currentDictionary[key] is not '':
+#                         if ',' in currentDictionary[key]: # parses a list of UID's that are separated by a comma into separate entries
+#                             tempkeylist = currentDictionary[key].split(',')
+#                             for tempkey in tempkeylist:
+#                                 if tempkey[0] == ' ': # getting rid of any spaces that might have remained after the parsing
+#                                     tempkey = tempkey[1:] 
+#                                 existingNamesDict[tempkey] = currentDictionary['SynBioHub URI']
+#                         else:
+#                             existingNamesDict[(currentDictionary[key])] = currentDictionary['SynBioHub URI']
+#     return existingNamesDict
       
+# taken from Google Sheets example API call:
+def LCPDictionaryCaller():
+    existingNamesDict = {}
+    # If modifying these scopes, delete the file token.pickle.
+    SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
+
+    # The ID and range of a sample spreadsheet.
+    SPREADSHEET_ID = '1bo34Knob4ihKBY6eWFhxpUTkyHXYzylv8yiMZvhFq5M'
+    RANGE_NAME = '!A2:H'
+
+    creds = None
+    if os.path.exists('token.pickle'):
+        with open('token.pickle', 'rb') as token:
+            creds = pickle.load(token)
+    # If there are no (valid) credentials available, let the user log in.
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file(
+                'credentials.json', SCOPES)
+            creds = flow.run_local_server(port=0)
+        # Save the credentials for the next run
+        with open('token.pickle', 'wb') as token:
+            pickle.dump(creds, token)
+
+    service = build('sheets', 'v4', credentials=creds)
+
+    # Call the Sheets API
+    for sheetName in ['Reagent','Strain','Genetic Construct']:
+        RANGE_NAME = sheetName + '!A2:H'
+        sheet = service.spreadsheets()
+        result = sheet.values().get(spreadsheetId = SPREADSHEET_ID,
+                                    range = RANGE_NAME).execute()
+        
+        values = result.get('values', [])
+        colHeaders = values[0]
+        uidNums = []
+        for i in range(0,len(colHeaders)):
+            if colHeaders[i] == 'Common Name':
+                nameNum = i
+            if colHeaders[i] == 'SynBioHub URI':
+                uriNum = i
+            if 'UID' in colHeaders[i]:
+                uidNums.append(i)
+        # looping through each row and adding to existingNamesDict
+        for r in range(1,len(values)):
+            currList = values[r]
+            existingNamesDict[currList[nameNum]] = currList[uriNum]
+            for num in uidNums:
+                if currList[num] != '':
+                    if ',' in currList[num]: # parses a list of UID's that are separated by a comma into separate entries
+                        tempkeylist = currList[num].split(',')
+                        for tempkey in tempkeylist:
+                            if tempkey[0] == ' ': # getting rid of any spaces that might have remained after the parsing
+                                tempkey = tempkey[1:] 
+                            existingNamesDict[tempkey] = currList[uriNum]
+                    else:
+                        existingNamesDict[currList[num]] = currList[uriNum]
+    return existingNamesDict
