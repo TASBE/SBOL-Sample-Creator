@@ -1,2 +1,5 @@
 pysbol
 xlrd
+--upgrade google-api-python-client 
+--upgrade google-auth-httplib2 
+--upgrade google-auth-oauthlib
