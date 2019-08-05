@@ -4,4 +4,6 @@ jupyter_contrib_nbextensions
 ipywidgets
 ipyupload
 tqdm
---upgrade google-api-python-client google-auth-httplib2 google-auth-oauthlib
+--upgrade google-api-python-client 
+--upgrade google-auth-httplib2 
+--upgrade google-auth-oauthlib
