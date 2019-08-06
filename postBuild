@@ -3,6 +3,6 @@ jupyter nbextension enable --py widgetsnbextension
 jupyter nbextension install ipyupload --py --sys-prefix
 jupyter nbextension enable ipyupload --py --sys-prefix
 jupyter nbextension enable init_cell/main
-jupyter nbextension install --py fileupload
-jupyter nbextension enable --py fileupload
+jupyter nbextension install --py fileupload --sys-prefix
+jupyter nbextension enable --py fileupload --sys-prefix
 jupyter trust SynBioHub\ Data\ Visualization.ipynb
