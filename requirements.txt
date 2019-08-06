@@ -2,7 +2,6 @@ pysbol
 xlrd
 jupyter_contrib_nbextensions
 ipywidgets
-ipyupload
 tqdm
 google-api-python-client 
 google-auth-httplib2 
