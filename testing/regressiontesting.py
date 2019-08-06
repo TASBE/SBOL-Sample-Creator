@@ -78,7 +78,7 @@ def PlasModTest(modlist, newmodlist, plasmidlist_repeats, plasmidlist_norepeats,
     # testing that the list of Modules and the list of all Plasmids is extracted
     (ModList,PlasmidList_orig) = py.PlasModList(ExpSheet)
     assert ModList == modlist
-    assert Pl8asmidList_orig == plasmidlist_repeats
+    assert PlasmidList_orig == plasmidlist_repeats
 
     # testing that all repeats in Plasmid list are removed
     PlasmidList_norepeat = py.PlasNoRepeat(PlasmidList_orig)
