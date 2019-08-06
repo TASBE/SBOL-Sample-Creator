@@ -54,6 +54,7 @@ def ExpNameFinder(wb):
     print('Error: Experiment name not found in file. It must be in the first column of the "Experiment" sheet under the "Experiment Name" header.')
     return(-1)
 
+# extracting information about each key in the Experimental conditions column (units, symbol meaning, etc)
 def ConditionKeyExtractor(wb):
     ConditionKeyDict = {}
     NameSheet = wb.sheet_by_name('Experiment')
@@ -543,15 +544,16 @@ def LCPDictionaryCaller():
         # looping through each row and adding to existingNamesDict
         for r in range(1,len(values)):
             currList = values[r]
-            existingNamesDict[currList[nameNum]] = currList[uriNum]
-            for num in uidNums:
-                if currList[num] != '':
-                    if ',' in currList[num]: # parses a list of UID's that are separated by a comma into separate entries
-                        tempkeylist = currList[num].split(',')
-                        for tempkey in tempkeylist:
-                            if tempkey[0] == ' ': # getting rid of any spaces that might have remained after the parsing
-                                tempkey = tempkey[1:] 
-                            existingNamesDict[tempkey] = currList[uriNum]
-                    else:
-                        existingNamesDict[currList[num]] = currList[uriNum]
+            if currList[nameNum] != '':
+                existingNamesDict[currList[nameNum]] = currList[uriNum]
+                for num in uidNums:
+                    if currList[num] != '':
+                        if ',' in currList[num]: # parses a list of UID's that are separated by a comma into separate entries
+                            tempkeylist = currList[num].split(',')
+                            for tempkey in tempkeylist:
+                                if tempkey[0] == ' ': # getting rid of any spaces that might have remained after the parsing
+                                    tempkey = tempkey[1:] 
+                                existingNamesDict[tempkey] = currList[uriNum]
+                        else:
+                            existingNamesDict[currList[num]] = currList[uriNum]
     return existingNamesDict
