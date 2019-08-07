@@ -526,7 +526,7 @@ def LCPDictionaryCaller():
 
     # Call the Sheets API
     for sheetName in ['Reagent','Strain','Genetic Construct']:
-        RANGE_NAME = sheetName + '!A2:H'
+        RANGE_NAME = sheetName + '!A2:I'
         sheet = service.spreadsheets()
         result = sheet.values().get(spreadsheetId = SPREADSHEET_ID,
                                     range = RANGE_NAME).execute()
