@@ -94,3 +94,5 @@ In the second section, enter the displayID, name, and description of the new Exp
 
 Finally, enter your SynBioHub username and password and click the "Upload to SynBioHub" button. If creating a new Project you will have the option to confirm its displayID before proceeding. If all is well, you should see a "Successfully Uploaded" message and a link that will take you to your updated Project on SynBioHub!
 
+**Note: depending on the size of the Excel file, uploading may take 1-2 minutes so do not be alarmed if it seems like it is taking a while.**
+
