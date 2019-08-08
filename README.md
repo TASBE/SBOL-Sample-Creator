@@ -21,7 +21,7 @@ In terminal, access the root directory of this project. Run the installation scr
 ```
 If you encounter permission issues, run the following command:
 ```
-chmod +x the_file_name
+chmod +x install
 ```
 ## How to use the notebook
 If running on terminal, download "SynBioHub Data Visualization.ipynb" and "experimentdnaexcel.py" into the directory that contains the Excel file you want to convert to SBOL.
