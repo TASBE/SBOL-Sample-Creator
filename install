@@ -1,11 +1,11 @@
+# !/bin/bash
+
 # script to run if planning on using notebook from terminal
 
 # installing necessary libraries and modules:
-
 pip3 install -r requirements.txt
 
 # configuring jupyter notebook extensions:
-
 jupyter contrib nbextension install --user
 jupyter nbextension enable --py widgetsnbextension
 jupyter nbextension enable init_cell/main
