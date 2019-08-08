@@ -15,60 +15,14 @@ Installation instructions for Jupyter can be found here: https://jupyter.org/ins
 It is recommended to use Anaconda to do this because it automatically installs both Jupyter Notebook and Python -- installation instructions can also be found through the link above.
 
 ## Installation
-#### 1. First, you will need to install Jupyter extensions:
+In terminal, access the root directory of this project. Run the installation script with this command:
 ```
-pip3 install jupyter_contrib_nbextensions
-jupyter contrib nbextension install --user
+./install
 ```
-or, if using Anaconda:
+If you encounter permission issues, run the following command:
 ```
-conda install -c conda-forge jupyter_contrib_nbextensions
+chmod +x the_file_name
 ```
-
-#### 2. Install ipywidgets:
-```
-pip3 install ipywidgets
-jupyter nbextension enable --py widgetsnbextension
-```
-or, if using Anaconda:
-```
-conda install -c conda-forge ipywidgets
-```
-
-#### 3. Install ipyupload:
-```
-pip3 install ipyupload
-jupyter nbextension install ipyupload --py --sys-prefix
-```
-
-#### 4. Now you need to make sure you have pySBOL installed for Python 3. Run the following commands from your terminal or console.
-More detailed instructions (and troubleshooting) can be found here: https://pysbol2.readthedocs.io/en/latest/installation.html\
-```
-pip3 install pysbol
-```
-or, if that causes a permission error:
-```
-git clone https://github.com/SynBioDex/pysbol.git
-```
-and then, from within the package's root directory:
-```
-python3 setup.py install
-```
-
-#### 5. Install xlrd, the library that will handle all the Excel data manipulation:
-```
-pip3 install xlrd
-```
-
-#### 6. Finally, install tqdm, the library that allows the progress bar of your upload to show:
-```
-pip3 install tqdm
-```
-or, if using anaconda:
-```
-conda install -c conda-forge tqdm
-```
-
 ## How to use the notebook
 If running on terminal, download "SynBioHub Data Visualization.ipynb" and "experimentdnaexcel.py" into the directory that contains the Excel file you want to convert to SBOL.
 "cd" to that location inside of your terminal or console, and then run the following command:
