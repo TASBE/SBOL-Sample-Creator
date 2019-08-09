@@ -19,7 +19,7 @@ In terminal, access the root directory of this project. Run the installation scr
 ```
 ./install
 ```
-If you encounter permission issues, run the following command:
+If you encounter permission issues, run the following command first:
 ```
 chmod +x install
 ```
