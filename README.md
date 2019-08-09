@@ -15,14 +15,12 @@ Installation instructions for Jupyter can be found here: https://jupyter.org/ins
 It is recommended to use Anaconda to do this because it automatically installs both Jupyter Notebook and Python -- installation instructions can also be found through the link above.
 
 ## Installation
-In terminal, access the root directory of this project. Run the installation script with this command:
+In terminal, access the root directory of this project. Run the installation script with the following command:
 ```
 ./install
 ```
-If you encounter permission issues, run the following command first:
-```
-chmod +x install
-```
+This will install all necessary libraries and jupyter extensions onto your computer.
+
 ## How to use the notebook
 If running on terminal, download "SynBioHub Data Visualization.ipynb" and "experimentdnaexcel.py" into the directory that contains the Excel file you want to convert to SBOL.
 "cd" to that location inside of your terminal or console, and then run the following command:
