@@ -1,3 +1,5 @@
+# commented-out sections are for when the second test Excel file (SBOL_Sample_test_2.xlsm) is properly created
+
 import os
 import sys
 from sbol import *

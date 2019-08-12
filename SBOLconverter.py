@@ -1,5 +1,4 @@
 from __future__ import print_function
-# Uncomment all import statements if NOT running with Jupyter Notebook
 # Follow README for installation instructions
 
 """""
@@ -18,20 +17,12 @@ from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 
-
-# global doc
-# doc = Document()
-# setHomespace('http://bu.edu/dasha')
-# Config.setOption('sbol_typed_uris',False)
-# Config.setOption('sbol_compliant_uris',True)
-
 # creating a variable representing the Excel file
 def MakeBook(file_location):
     wb = xlrd.open_workbook(file_location)
     return wb
 
-
-# extracting experiment name from "Experiment" sheet and making sure there is a sheet named "Experiment DNA sample"
+# making sure there is a sheet named "Experiment DNA sample"
 def ExpSheetFinder(wb, ExperimentSheetName):
     try:
         ExperimentSheet = wb.sheet_by_name(ExperimentSheetName)
@@ -40,6 +31,7 @@ def ExpSheetFinder(wb, ExperimentSheetName):
         return(-1)
     return(ExperimentSheet)
 
+# extracting experiment name from "Experiment" sheet
 def ExpNameFinder(wb):
     NameSheet = wb.sheet_by_name('Experiment')
     LookingFor = 'Experiment Name'
@@ -176,7 +168,7 @@ def ModMaker(ModList, newModList, ExperimentSheet, doc):
 MODULE DEFINITIONS -- SAMPLES
 """""
 
-# finding Sample sheet and extracting Sample List and Sample Descriptions
+# finding Sample sheet and extracting Sample List
 def SamplesSheetFinder(wb):
     try:
         SampleSheet = wb.sheet_by_name('Samples')
@@ -185,6 +177,7 @@ def SamplesSheetFinder(wb):
         return(-1)
     return SampleSheet
 
+# extracting Sample Descriptions from Sample sheet
 def SampleListDesc(SampleSheet):
     SampleList = []
     SampleDescriptions = []
@@ -203,8 +196,7 @@ def SampleListDesc(SampleSheet):
         return(-1,-1)
     return (SampleList, SampleDescriptions)
 
-# creating ModuleDefinitions for each Sample listed in the Samples Tab, and creating annotations for each Sample by getting information about Experimental Conditions
-
+# getting information about Experimental Conditions for each Sample
 def SampleExpConditions(SampleSheet, SampleList):
     # getting data about Experimental Conditions -- ASSUMING THERE ARE AT MOST 5 POSSIBLE COLUMNS
     ConditionDictionary = {}
@@ -234,7 +226,7 @@ def SampleExpConditions(SampleSheet, SampleList):
             ConditionDictionary[str(cond[0])] = cond[1:]
     return ConditionDictionary
 
-# creating Module Defs
+# creating Module Definition for each Sample, and adding the appropriate Annotations based on the Experimental Conditions in ConditionDictionary
 def SampleModMaker(SampleSheet, SampleList, SampleDescriptions, ConditionDictionary, ExperimentName, existingNamesDict, ConditionKeyDict, doc):
     SampleModDefDict = {}
     clean = lambda varStr: re.sub('\W|^(?=\d)','_', varStr)
@@ -250,8 +242,7 @@ def SampleModMaker(SampleSheet, SampleList, SampleDescriptions, ConditionDiction
             formatlist = [SampleSheet.name,SampleList[val]]
             print('Error: Detecting two samples in "{}" sheet numbered {}.'.format(*formatlist))
             return(-1,-1)
-        # creating annotations with Dox symbol, time, and any other experimental conditions listed
-        # make sure that it adds the annotations as functional components if the Dox is present, etc
+        # creating either FuncComp or Annotations with Dox symbol, time, and any other experimental conditions listed
         for cond in ConditionDictionary:
             value = (ConditionDictionary[cond])[val]
             uriLink = 'http://bu.edu/dasha/#'
@@ -272,7 +263,7 @@ def SampleModMaker(SampleSheet, SampleList, SampleDescriptions, ConditionDiction
                     codeVal = conditionExplanation.split()[0]
                 except:
                     codeVal = ''
-                if cond.lower() != 'time' and cond.lower() != 'code' and conditionValue != '0' and codeVal != '0':
+                if cond.lower() != 'time' and cond.lower() != 'code' and conditionValue != '0' and codeVal != '0': # creates FuncComps for all conditions except for time and code
                     if is_number(cond[0]):
                         compDisp = '_' + cond
                     else:
@@ -280,7 +271,7 @@ def SampleModMaker(SampleSheet, SampleList, SampleDescriptions, ConditionDiction
                     tempcomp = ComponentDefinition(compDisp)
                     temp2 = SampleModDefDict[displayID].functionalComponents.create(compDisp)
                     try:
-                        temp2.definition = existingNamesDict[cond]
+                        temp2.definition = existingNamesDict[cond] # checks if exp. condition exists as a reagent in the LCP Dictionary, if so links to it
                     except:
                         temp2.definition = tempcomp.identity
                     counter += 1
@@ -293,7 +284,6 @@ def SampleModMaker(SampleSheet, SampleList, SampleDescriptions, ConditionDiction
                     newprop = TextProperty(temp,rdf,'0','1',conditionValue + ' ' + conditionExplanation)
     return (SampleModDefDict, newSampleList)
 
-# NEXT STEP: have the computer extract information about the condition keys (aka each explanation) so that when adding annotation it can be added as 0 ng instead of - or 100 ng instead of +
 # creating Modules for each of the plasmid mixes and adding them to the appropriate Sample MD
 def ModAdder(SampleList, newSampleList, SampleModDefDict, ModList, newModList, ModDefDict, ConditionDictionary):  
     isthereCode = 0
@@ -405,9 +395,10 @@ def FuncMaker(ModList, newModList, ModDefDict, CompDefDict, ExperimentSheet, Uni
                     temp.types = 'http://www.ebi.ac.uk/sbo/main/SBO:0000649'
                     
                 elif value == '':
-                    # figure out how to delete component definition for unused components here
+                    # deleting FuncComps for any unused plasmids in this specific mix
                     ModDefDict[mod].functionalComponents.remove(temp.identity)
             r+=1
+    # deleting CompDefs for any plasmids/components that are unused in all of the ModuleDefs
     funclist = ''
     toRemove = []
     for mod in ModDefDict:
@@ -462,8 +453,8 @@ def NewProjUpload(username, password, doc):
     return(0)
 
 
-# function to call Google API and check if the LCP dictionary has the component
-# taken from Google Sheets example API call:
+# calls Google API and adds all existing Reagents, Strains, and Genetic Constructs into a local dictionary that can be searched later
+# taken from Google Sheets example API call: https://developers.google.com/sheets/api/quickstart/python
 def LCPDictionaryCaller():
     existingNamesDict = {}
     # If modifying these scopes, delete the file token.pickle.
