@@ -36,6 +36,7 @@ You will have to reupload the file for any changes you make to take effect. Here
 ![](img/errorexample.gif)
 
 If there were no errors, continue to the next section where you will enter information about your project and experiments. The format that this notebook follows assumes you have a general Project collection, containing multiple Experiment collections that can be derived from different Excel spreadsheets. 
+
 If you already have an existing Project collection in your SynBioHub account, in the first section you only need to enter the displayID and version of that Project. If you want to create a new Project, a name and description can be added as well. Make sure the displayID has only letters, numbers, or underscore characters and that it does not begin with a number. The displayID will be part of the URI, or uniform resource identifier for your collection.
 The name can be whatever you want it to be -- it gives greater specificity to your collection.
 
