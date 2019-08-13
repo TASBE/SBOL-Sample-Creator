@@ -273,7 +273,7 @@ def SampleModMaker(SampleSheet, SampleList, SampleDescriptions, ConditionDiction
                     try:
                         temp2.definition = existingNamesDict[cond] # checks if exp. condition exists as a reagent in the LCP Dictionary, if so links to it
                     except:
-                        temp2.definition = tempcomp.identity
+                        temp2.definition = tempcomp.identity # creates a new CompDef if not in LCP dictionary
                     counter += 1
                     rdf1 = uriLink + 'hasKey'
                     rdf2 = uriLink + 'hasExplanation'
@@ -323,7 +323,7 @@ def is_number(s):
 COMPONENT DEFINITIONS
 """""
 
-# creating ComponentDefinition for each plasmid type and adding description, key is the displayID and value is the CD
+# creating ComponentDefinitions for each plasmid type and adding description, key is the displayID and value is the CD
 def CompMaker(PlasmidList_norepeat, existingNamesDict, doc):
     CompDefDict = {}
     # populating Component Dictionary
