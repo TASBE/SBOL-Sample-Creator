@@ -273,6 +273,7 @@ def SampleModMaker(SampleSheet, SampleList, SampleDescriptions, ConditionDiction
                     try:
                         temp2.definition = existingNamesDict[cond] # checks if exp. condition exists as a reagent in the LCP Dictionary, if so links to it
                     except:
+                        # add an alert telling the user to add the component to the LCP dictionary, maybe add a function
                         temp2.definition = tempcomp.identity # creates a new CompDef if not in LCP dictionary
                     counter += 1
                     rdf1 = uriLink + 'hasKey'
@@ -418,6 +419,7 @@ def UploadFunc(username, password, experimentID, experimentName, experimentDescr
     shop = PartShop('https://synbiohub.org')
     try:
         shop.login(username, password)
+        print('ahh')
     except RuntimeError as e:
         print(e)
         return(0)
