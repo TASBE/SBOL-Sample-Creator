@@ -419,7 +419,6 @@ def UploadFunc(username, password, experimentID, experimentName, experimentDescr
     shop = PartShop('https://synbiohub.org')
     try:
         shop.login(username, password)
-        print('ahh')
     except RuntimeError as e:
         print(e)
         return(0)
