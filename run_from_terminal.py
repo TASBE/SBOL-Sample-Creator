@@ -13,6 +13,8 @@ from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 
+from synbiohub_adapter.upload_sbol import SynBioHub
+
 
 global doc
 doc = Document()
@@ -68,11 +70,14 @@ experimentDescription = input('Enter the experiment collection description: ')
 # logging into SynBioHub and uploading collection information
 username = input('Enter your SynBioHub username: ')
 password = getpass.getpass(prompt='Enter your SynBioHub password: ')
+sbh = py.LoginFunc(username,password)
 sep = '@'
 rest = username.split(sep, 1)[0]
 projectURI = "https://synbiohub.org/user/" + rest + "/" + projectID + "/" + projectID + "_collection/" + projectVersion
-retVal = py.UploadFunc(username, password, experimentID, experimentName, experimentDescription, projectURI, doc)
+retVal = py.UploadFunc(sbh, experimentID, experimentName, experimentDescription, projectID, projectName, projectDescription, projectVersion, projectURI, doc)
 if retVal == 1:
+       print('project and collection ids are already in use, do you want to replace it ?')
+
        print('No project with the displayID "{}" found.'.format(projectID))
        answer = input('Do you want to create a new project with this displayID? (y/n)')
        if answer == 'y':

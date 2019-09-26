@@ -17,6 +17,8 @@ from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 
+from synbiohub_adapter.upload_sbol import SynBioHub
+
 # creating a variable representing the Excel file
 def MakeBook(file_location):
     wb = xlrd.open_workbook(file_location)
@@ -420,35 +422,49 @@ def FuncMaker(ModList, newModList, ModDefDict, CompDefDict, ExperimentSheet, Uni
         del CompDefDict[rem]
     return 0
 
+# logging into SynBioHub
+def LoginFunc(username,password):
+    sbh = SynBioHub('https://synbiohub.org', username, password, 'https://synbiohub.org//sparql')
+    return sbh
+
 # creating a Collection containing all the objects in the Document (Experiment Collection) and either adding it to an existing Project Collection or creating a new Project Collection. Logging in and uploading everything to SynBioHub
-def UploadFunc(username, password, experimentID, experimentName, experimentDescription, projectURI, doc):
-    shop = PartShop('https://synbiohub.org')
-    try:
-        shop.login(username, password)
-    except RuntimeError as e:
-        print(e)
-        return(0)
+def UploadFunc(sbh, experimentID, experimentName, experimentDescription, projectID, projectName, projectDescription, projectVersion, projectURI, doc):
     subcollection = Collection(experimentID)
     subcollection.name = experimentName
     subcollection.description = experimentDescription
 
-    uriList = [obj.identity for obj in doc]
-    subcollection.members = subcollection.members + uriList
-    doc.addCollection(subcollection)
+    # uriList = [obj.identity for obj in doc]
+    # subcollection.members = subcollection.members + uriList
+    # doc.addCollection(subcollection)
+    experimentVersion = '1'
+    
     try:
-        result = shop.submit(doc,projectURI,2) # 2 means merge, which is what you do if youre adding a non-existing collection to a project collection
-        # took 1 min 13 seconds on 08/02
-        print(result)
-        if result == 'Submission successful' or result == 'Successfully uploaded':
-            return(2)
+        sbh.submit_to_collection(doc,projectURI,0,False,False,experimentID,experimentVersion,experimentName,experimentDescription)
+
+        sbh.submit_collection(doc, projectID, projectVersion,projectName,projectDescription,0,experimentID,experimentVersion,experimentName,experimentDescription)
     except RuntimeError as e:
         e = str(e)
-        if e == 'HTTP post request failed with: Submission id and version does not exist':
+        if e == 'HTTP post request failed with: Submission id and version already in use':
             return(1)
         else:
             print(e)
-            subcollection = doc.collections.remove(subcollection.identity)
+            # subcollection = doc.collections.remove(subcollection.identity)
             return(0)
+    
+    # try:
+    #     result = shop.submit(doc,projectURI) # 2 means merge, which is what you do if youre adding a non-existing collection to a project collection
+    #     # took 1 min 13 seconds on 08/02
+    #     print(result)
+    #     if result == 'Submission successful' or result == 'Successfully uploaded':
+    #         return(2)
+    # except RuntimeError as e:
+    #     e = str(e)
+    #     if e == 'HTTP post request failed with: Submission id and version does not exist':
+    #         return(1)
+    #     else:
+    #         print(e)
+    #         subcollection = doc.collections.remove(subcollection.identity)
+    #         return(0)
 
 
 # uploader if the user is creating a new Project Collection
