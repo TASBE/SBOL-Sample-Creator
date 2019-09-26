@@ -120,7 +120,7 @@ def SamplesTest(wb, modlist, newmodlist, moddict, samplelist, sampledescriptions
     ConditionKeyDict = py.ConditionKeyExtractor(wb)
 
     # creating a dictionary of Sample Modules, with a list of ExpName and Sample Number concatenated together
-    (SampleModDefDict, newSampleList) = py.SampleModMaker(SampleSheet,SampleList,SampleDescriptions,ConditionDictionary,expname,existingNamesDict,ConditionKeyDict,doc)
+    (SampleModDefDict, newSampleList, notInDict) = py.SampleModMaker(SampleSheet,SampleList,SampleDescriptions,ConditionDictionary,expname,existingNamesDict,ConditionKeyDict,doc)
     assert len(SampleModDefDict) == len(SampleList)
     assert list(set(SampleModDefDict.keys()) - set(newSampleList)) == []
     for sample in newSampleList:
@@ -152,7 +152,7 @@ def SamplesTest(wb, modlist, newmodlist, moddict, samplelist, sampledescriptions
 
 
 def CompTest(plasmidlist_norepeats, doc):
-    CompDefDict = py.CompMaker(plasmidlist_norepeats,existingNamesDict,doc)
+    (CompDefDict,notInDict2) = py.CompMaker(plasmidlist_norepeats,existingNamesDict,doc)
     # checking that the CompDef dictionary contains all the plasmids in the plasmid list at this point
     assert list(set(CompDefDict.keys()) - set(plasmidlist_norepeats)) == []
     # checking that the type stored in the CompDef dictionary is a ComponentDefiniiton

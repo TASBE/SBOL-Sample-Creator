@@ -46,11 +46,11 @@ ModDefDict = py.ModMaker(ModList,newModList,ExpSheet,doc)
 SampleSheet = py.SamplesSheetFinder(wb)
 (SampleList, SampleDescriptions) = py.SampleListDesc(SampleSheet)
 ConditionDictionary = py.SampleExpConditions(SampleSheet, SampleList)
-(SampleModDefDict, newSampleList) = py.SampleModMaker(SampleSheet,SampleList,SampleDescriptions,ConditionDictionary,ExpName,existingNamesDict,ConditionKeyDict,doc)
+(SampleModDefDict, newSampleList, notInDict) = py.SampleModMaker(SampleSheet,SampleList,SampleDescriptions,ConditionDictionary,ExpName,existingNamesDict,ConditionKeyDict,doc)
 
 # Adding DNA mix reference to each Sample, creating ComponentDefinitions for each plasmid
 py.ModAdder(SampleList,newSampleList,SampleModDefDict,ModList,newModList,ModDefDict,ConditionDictionary)
-CompDefDict = py.CompMaker(PlasmidList_norepeat,existingNamesDict,doc)
+(CompDefDict,notInDict2) = py.CompMaker(PlasmidList_norepeat,existingNamesDict,doc)
 
 # creating FunctionalComponents for each plasmid within each DNA mix
 py.FuncMaker(ModList, newModList, ModDefDict, CompDefDict, ExpSheet, Unit, doc)

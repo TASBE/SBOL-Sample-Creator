@@ -228,6 +228,7 @@ def SampleExpConditions(SampleSheet, SampleList):
 
 # creating Module Definition for each Sample, and adding the appropriate Annotations based on the Experimental Conditions in ConditionDictionary
 def SampleModMaker(SampleSheet, SampleList, SampleDescriptions, ConditionDictionary, ExperimentName, existingNamesDict, ConditionKeyDict, doc):
+    notInDict = []
     SampleModDefDict = {}
     clean = lambda varStr: re.sub('\W|^(?=\d)','_', varStr)
     newSampleList = [(clean(ExperimentName) + '_sample_' + str(round(SampleName))) for SampleName in SampleList]
@@ -273,6 +274,8 @@ def SampleModMaker(SampleSheet, SampleList, SampleDescriptions, ConditionDiction
                     try:
                         temp2.definition = existingNamesDict[cond] # checks if exp. condition exists as a reagent in the LCP Dictionary, if so links to it
                     except:
+                        if cond not in notInDict:
+                            notInDict.append(cond)
                         # add an alert telling the user to add the component to the LCP dictionary, maybe add a function
                         temp2.definition = tempcomp.identity # creates a new CompDef if not in LCP dictionary
                     counter += 1
@@ -283,7 +286,7 @@ def SampleModMaker(SampleSheet, SampleList, SampleDescriptions, ConditionDiction
                         explanationVal = TextProperty(temp2,rdf2,'0','1',conditionExplanation)
                 if counter == 0 and conditionValue != '0' and codeVal != '0':
                     newprop = TextProperty(temp,rdf,'0','1',conditionValue + ' ' + conditionExplanation)
-    return (SampleModDefDict, newSampleList)
+    return (SampleModDefDict, newSampleList, notInDict)
 
 # creating Modules for each of the plasmid mixes and adding them to the appropriate Sample MD
 def ModAdder(SampleList, newSampleList, SampleModDefDict, ModList, newModList, ModDefDict, ConditionDictionary):  
@@ -326,6 +329,7 @@ COMPONENT DEFINITIONS
 
 # creating ComponentDefinitions for each plasmid type and adding description, key is the displayID and value is the CD
 def CompMaker(PlasmidList_norepeat, existingNamesDict, doc):
+    notInDict2 = []
     CompDefDict = {}
     # populating Component Dictionary
     for val in range(0,len(PlasmidList_norepeat)):
@@ -334,12 +338,14 @@ def CompMaker(PlasmidList_norepeat, existingNamesDict, doc):
         for name in existingNamesDict:
             if displayID == name:
                 temp.identity = existingNamesDict[name] # links to an existing component from the dictionary
+        if 'bu.edu/dasha' in temp.identity: # aka if the component was not found in the dictionary
+            notInDict2.append(displayID)
         CompDefDict[displayID] = temp
     # adding the role to each component and then adding all component definitions to the doc
     for comp in CompDefDict:
         CompDefDict[comp].roles = SO_PLASMID
         doc.addComponentDefinition(CompDefDict[comp])
-    return(CompDefDict)
+    return(CompDefDict,notInDict2)
 
 
 """""
@@ -425,11 +431,12 @@ def UploadFunc(username, password, experimentID, experimentName, experimentDescr
     subcollection = Collection(experimentID)
     subcollection.name = experimentName
     subcollection.description = experimentDescription
+
     uriList = [obj.identity for obj in doc]
     subcollection.members = subcollection.members + uriList
     doc.addCollection(subcollection)
     try:
-        result = shop.submit(doc,projectURI,2) # 2 means merge
+        result = shop.submit(doc,projectURI,2) # 2 means merge, which is what you do if youre adding a non-existing collection to a project collection
         # took 1 min 13 seconds on 08/02
         print(result)
         if result == 'Submission successful' or result == 'Successfully uploaded':
