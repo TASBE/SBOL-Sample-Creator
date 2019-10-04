@@ -48,3 +48,5 @@ Finally, enter your SynBioHub username and password and click the "Upload to Syn
 
 **Note: depending on the size of the Excel file, uploading may take 1-2 minutes so do not be alarmed if it seems like it is taking a while.**
 
+To delete specific Samples, you can click on the trash icon next to the Sample name. 
+
