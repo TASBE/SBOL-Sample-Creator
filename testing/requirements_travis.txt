@@ -5,4 +5,3 @@ google-auth-httplib2
 google-auth-oauthlib
 fileupload
 git+https://github.com/SD2E/synbiohub_adapter.git@v1.1
-git+https://github.com/SD2E/sbol-dictionary-writer.git
