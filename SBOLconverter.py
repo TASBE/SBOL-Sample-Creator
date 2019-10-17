@@ -19,6 +19,8 @@ from google.auth.transport.requests import Request
 
 from synbiohub_adapter.upload_sbol import SynBioHub
 
+from sd2_dictionary.sd2_dictionary_writer import SD2DictionaryWriter
+
 # creating a variable representing the Excel file
 def MakeBook(file_location):
     wb = xlrd.open_workbook(file_location)
@@ -136,12 +138,6 @@ MODULE DEFINITIONS -- DNA MIXES
 # taking the module name/type of plasmid mix and putting a '_' where the spaces are, then composing the ModuleNames into a new list
 def ModListCleaner(ModList, ExperimentName):
     clean = lambda varStr: re.sub('\W|^(?=\d)','_', varStr)
-    #import urllib.parse
-    #ExperimentName = urllib.parse.quote(ExperimentName)
-    #'JHT6_codename_1_DNA_X' 
-            # vs.
-    #'JHT6_codename_10x3ADNA0x20X'
-    #newModList = [(ExperimentName.replace('%','0x') + '_codename_' + urllib.parse.quote(ModName).replace('%','0x')) for ModName in ModList]
     newModList = [(clean(ExperimentName) + '_codename' + clean(ModName)) for ModName in ModList]
     return(newModList)
 
@@ -393,15 +389,37 @@ def FuncMaker(ModList, newModList, ModDefDict, CompDefDict, ExperimentSheet, Uni
                 # setting annotations:
                 value = (ExperimentSheet.cell(r,col)).value
                 if value != '':
-                    value = float('%6g' % value) # at most 6 significant figures
-                    temp.hasNumericalValue = FloatProperty(temp,'http://bu.edu/dasha/#hasNumericalValue','0','1')
-                    temp.hasNumericalValue = value
-                    temp.hasUnit = URIProperty(temp,'http://bu.edu/dasha/#hasUnit','0','1')
-                    temp.hasUnit = 'http://www.ontology-of-units-of-measure.org/resource/om-2/nanogram'
-                    temp.symbol = TextProperty(temp,'http://bu.edu/dasha/#symbol','0','1')
-                    temp.symbol = Unit
-                    temp.types = URIProperty(temp,'http://bu.edu/dasha/#types','0','1')
-                    temp.types = 'http://www.ebi.ac.uk/sbo/main/SBO:0000649'
+                    # Measurements
+                    numvalue = float('%6g' % value) # at most 6 significant figures
+                    
+                    # to add units onto measurement -- measure object hasNumericalValue and hasUnit properties
+                    # dir function tells you attribute
+                    # owned measurement
+                    # m = Measurement('m')
+                    # 'm' is displayID -- parentID/measure1
+                    # dir(m)
+                    # m.value, m.unit, m.types
+                    # unit is ontology term
+
+
+                    examplemeasure = Measurement('m')
+                    measureID = displayId + 'measure' + str(val)
+                    testmeasure = temp.measurements.create(measureID)
+
+                    testmeasure.definition = examplemeasure.identity
+                    testmeasure.value = numvalue
+                    testmeasure.unit = "http://www.ontology-of-units-of-measure.org/resource/om-2/nanogram"
+                    testmeasure.types = ['http://www.ebi.ac.uk/sbo/main/SBO:0000649']
+
+                    # BEFORE ADDING MEASURE OBJECT ->
+                    # temp.hasNumericalValue = FloatProperty(temp,'http://bu.edu/dasha/#hasNumericalValue','0','1')
+                    # temp.hasNumericalValue = value
+                    # temp.hasUnit = URIProperty(temp,'http://bu.edu/dasha/#hasUnit','0','1')
+                    # temp.hasUnit = 'http://www.ontology-of-units-of-measure.org/resource/om-2/nanogram'
+                    # temp.symbol = TextProperty(temp,'http://bu.edu/dasha/#symbol','0','1')
+                    # temp.symbol = Unit
+                    # temp.types = URIProperty(temp,'http://bu.edu/dasha/#types','0','1')
+                    # temp.types = 'http://www.ebi.ac.uk/sbo/main/SBO:0000649'
                     
                 elif value == '':
                     # deleting FuncComps for any unused plasmids in this specific mix
@@ -429,17 +447,23 @@ def LoginFunc(username,password):
 
 # creating a Collection containing all the objects in the Document (Experiment Collection) and either adding it to an existing Project Collection or creating a new Project Collection. Logging in and uploading everything to SynBioHub
 def UploadFunc(sbh, experimentID, experimentName, experimentDescription, projectID, projectName, projectDescription, projectVersion, projectURI, doc):
-    subcollection = Collection(experimentID)
-    subcollection.name = experimentName
-    subcollection.description = experimentDescription
+    # subcollection = Collection(experimentID)
+    # subcollection.name = experimentName
+    # subcollection.description = experimentDescription
 
     # uriList = [obj.identity for obj in doc]
     # subcollection.members = subcollection.members + uriList
     # doc.addCollection(subcollection)
+    # shop = PartShop('https://synbiohub.org')
+    # shop.login(username,password)
+    # doc.displayId = projectID
+    # doc.name = projectName
+    # doc.description = projectDescription
+    # doc.version = projectVersion
+
     experimentVersion = '1'
-    
     try:
-        sbh.submit_to_collection(doc,projectURI,0,False,False,experimentID,experimentVersion,experimentName,experimentDescription)
+        # sbh.submit_to_collection(doc,projectURI,0,False,False,experimentID,experimentVersion,experimentName,experimentDescription)
 
         sbh.submit_collection(doc, projectID, projectVersion,projectName,projectDescription,0,experimentID,experimentVersion,experimentName,experimentDescription)
     except RuntimeError as e:
@@ -452,7 +476,7 @@ def UploadFunc(sbh, experimentID, experimentName, experimentDescription, project
             return(0)
     
     # try:
-    #     result = shop.submit(doc,projectURI) # 2 means merge, which is what you do if youre adding a non-existing collection to a project collection
+    #     result = shop.submit(doc) #,projectURI) # 2 means merge, which is what you do if youre adding a non-existing collection to a project collection
     #     # took 1 min 13 seconds on 08/02
     #     print(result)
     #     if result == 'Submission successful' or result == 'Successfully uploaded':
@@ -539,3 +563,15 @@ def LCPDictionaryCaller():
                         else:
                             existingNamesDict[currList[num]] = currList[uriNum]
     return existingNamesDict
+
+def AddToDict(NamesList, entryType):
+    dictionaryWrite = SD2DictionaryWriter(
+        spreadsheet_id = '1bo34Knob4ihKBY6eWFhxpUTkyHXYzylv8yiMZvhFq5M'
+    )
+    for commonName in NamesList:
+        dictionaryWrite.add_dictionary_entry(
+            common_name = commonName, entry_type = entryType)
+
+# automatically adds to the reagent tab rn, need to figure out how to be able to select which specific tab to add to
+
+# entry type options: DNA, Solution, Bead, CHEBI, Buffer, Stain, Media, RNA, Protein

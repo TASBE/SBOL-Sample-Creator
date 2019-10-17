@@ -52,7 +52,7 @@ ConditionDictionary = py.SampleExpConditions(SampleSheet, SampleList)
 
 # Adding DNA mix reference to each Sample, creating ComponentDefinitions for each plasmid
 py.ModAdder(SampleList,newSampleList,SampleModDefDict,ModList,newModList,ModDefDict,ConditionDictionary)
-(CompDefDict,notInDict2) = py.CompMaker(PlasmidList_norepeat,existingNamesDict,doc)
+(CompDefDict,notInDict2) = py.CompMaker(PlasmidList_norepeat,existingNamesDict,doc)\
 
 # creating FunctionalComponents for each plasmid within each DNA mix
 py.FuncMaker(ModList, newModList, ModDefDict, CompDefDict, ExpSheet, Unit, doc)
@@ -67,6 +67,21 @@ experimentID = input('Enter the experiment collection displayID: ')
 experimentName = input('Enter the experiment collection name: ')
 experimentDescription = input('Enter the experiment collection description: ')
 
+# subcollection = Collection(experimentID)
+# subcollection.name = experimentName
+# subcollection.description = experimentDescription
+
+# uriList = [obj.identity for obj in doc]
+# print(uriList)
+# subcollection.members = subcollection.members + uriList
+# doc.addCollection(subcollection)
+
+# doc.displayId = projectID
+# doc.name = projectName
+# doc.description = projectDescription
+# doc.version = projectVersion
+                                                                             
+# py.NewProjUpload(username,password,doc)
 # logging into SynBioHub and uploading collection information
 username = input('Enter your SynBioHub username: ')
 password = getpass.getpass(prompt='Enter your SynBioHub password: ')
@@ -74,10 +89,10 @@ sbh = py.LoginFunc(username,password)
 sep = '@'
 rest = username.split(sep, 1)[0]
 projectURI = "https://synbiohub.org/user/" + rest + "/" + projectID + "/" + projectID + "_collection/" + projectVersion
-retVal = py.UploadFunc(sbh, experimentID, experimentName, experimentDescription, projectID, projectName, projectDescription, projectVersion, projectURI, doc)
+retVal = py.UploadFunc(sbh experimentID, experimentName, experimentDescription, projectID, projectName, projectDescription, projectVersion, projectURI, doc)
 if retVal == 1:
        print('project and collection ids are already in use, do you want to replace it ?')
-
+       ## fix this , it was changed after synbiohub adapter but now doesnt fully work
        print('No project with the displayID "{}" found.'.format(projectID))
        answer = input('Do you want to create a new project with this displayID? (y/n)')
        if answer == 'y':
